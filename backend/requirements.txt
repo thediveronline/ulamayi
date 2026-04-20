@@ -1,0 +1,4 @@
+node
+cloudinary
+request
+express
