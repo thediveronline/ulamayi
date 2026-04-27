@@ -5,6 +5,7 @@ const { hacherMotDePasse, comparerMotDePasse } = require('../utils/hachage.util'
 const { genererJeton } = require('../utils/jeton.util');
 const { genererOTP, calculerExpiration, estOTPValide } = require('../utils/otp.util');
 const modeleOTP = require('../models/otp.modele');
+const { envoyerCodeOTP } = require('./email.service');
 const modeleEleve = require('../models/eleve.modele');
 const modeleEnseignant = require('../models/enseignant.modele');
 const modeleParent = require('../models/parent.modele');
@@ -29,12 +30,13 @@ const inscrire = async (donnees) => {
     await modele.creer({ nom, prenom, email, mot_de_passe: motDePasseHache, niveau_scolaire, matiere });
 
     // Generation du code OTP et stockage en base
+    const dureeMinutes = Number(process.env.OTP_EXPIRES_MINUTES) || 10;
     const code = genererOTP();
-    const expiration = calculerExpiration(Number(process.env.OTP_EXPIRES_MINUTES) || 10);
+    const expiration = calculerExpiration(dureeMinutes);
     await modeleOTP.creer(email, code, expiration);
 
-    // En production : envoyer le code par email. Ici on le logue pour les tests.
-    console.log(`[OTP] Code pour ${email} : ${code}`);
+    // Envoi du code par email via Mailgun (fallback console si non configure)
+    await envoyerCodeOTP({ email, code, minutes: dureeMinutes });
 
     return { message: 'Inscription reussie. Verifiez votre email pour le code de confirmation.' };
 };

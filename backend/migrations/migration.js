@@ -83,6 +83,8 @@ const creerTables = async () => {
                 description TEXT,
                 contenu TEXT NOT NULL,
                 media_url TEXT,
+                media_type VARCHAR(20),
+                media_public_id TEXT,
                 niveau_scolaire VARCHAR(50) NOT NULL,
                 prix NUMERIC(10, 2) DEFAULT 0,
                 enseignant_id INTEGER REFERENCES enseignants(id) ON DELETE SET NULL,

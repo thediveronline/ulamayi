@@ -102,8 +102,67 @@ Pour TOUTES ces routes ci-dessous, le Front-End DOIT inclure le Header suivant d
 ## 7. Publications / Épreuves (`/api/publications`)
 
 - `POST /api/publications/` : (Enseignants uniquement) -> Crée une nouvelle épreuve.
-  *(Body requis : `titre`, `contenu`, `niveau_scolaire`. Optionnels : `description`, `prix`)*
+  *(Format : `multipart/form-data`. Champs requis : `titre`, `contenu`, `niveau_scolaire`. Optionnels : `description`, `prix`, `media` (fichier image JPG/PNG/WEBP/GIF ou PDF, max 10 Mo, uploadé sur Cloudinary).)*
 - `GET /api/publications/` : (Accessible à tous les connectés) -> Liste absolument toutes les publications.
 - `GET /api/publications/:id` : (Accessible à tous) -> Détail d'une publication spécifique.
 - `PUT /api/publications/:id` : (Enseignants uniquement) -> Modifier une de SA PROPRE publication.
-- `DELETE /api/publications/:id` : (Enseignant auteur de la publication OU Admin) -> Supprime l'épreuve.
+  *(Format : `multipart/form-data`. Tous les champs sont optionnels. Pour remplacer le média joindre un nouveau fichier `media`. Pour supprimer le média existant sans le remplacer envoyer `supprimer_media=true`.)*
+- `DELETE /api/publications/:id` : (Enseignant auteur de la publication OU Admin) -> Supprime l'épreuve et le média Cloudinary associé.
+
+### Champs renvoyés par les publications
+
+Chaque publication retournée par l'API contient :
+- `media_url` : URL Cloudinary sécurisée du média (ou `null`).
+- `media_type` : `image`, `pdf` ou `null`.
+- `media_public_id` : identifiant Cloudinary pour la suppression (interne).
+
+Les vignettes côté front sont générées via les transformations Cloudinary (ex. `c_fill,w_480,h_360,q_auto,f_auto` pour les images, `pg_1,...,f_jpg` pour rendre la première page d'un PDF).
+
+### Variables d'environnement PostgreSQL (connexion a la base)
+
+Deux modes sont supportes par le `backend/config/connexion.js` :
+
+**Option A : URL complete (recommande pour Neon.tech ou toute base cloud)**
+```
+DATABASE_URL=postgresql://user:password@host.neon.tech/dbname?sslmode=require
+```
+Quand `DATABASE_URL` est definie, le backend se connecte via cette URL avec SSL obligatoire (`rejectUnauthorized: false`). C'est le mode par defaut en production.
+
+**Option B : Variables separees (dev local avec PostgreSQL installe sur la machine)**
+```
+DB_HOST=localhost
+DB_PORT=5432
+DB_NAME=ulamayi
+DB_USER=ulamayi
+DB_PASSWORD=ton_mot_de_passe
+```
+
+### Variables d'environnement Cloudinary
+
+À ajouter dans `backend/.env` :
+```
+CLOUDINARY_CLOUD_NAME=...
+CLOUDINARY_API_KEY=...
+CLOUDINARY_API_SECRET=...
+```
+
+### Variables d'environnement Mailgun (envoi des OTP par email)
+
+À ajouter dans `backend/.env` :
+```
+MAILGUN_API_KEY=...
+MAILGUN_DOMAIN=mg.mondomaine.com
+MAILGUN_FROM=Ulamayi <noreply@mg.mondomaine.com>
+MAILGUN_REGION=eu                # optionnel : "eu" ou "us" (defaut: us)
+OTP_EXPIRES_MINUTES=10           # optionnel : duree de validite des codes
+```
+
+Si ces variables ne sont pas définies, le code OTP sera affiché dans la console du serveur (mode dev). Cela permet de continuer à tester l'inscription sans clé Mailgun.
+
+### Migration de la base
+
+Les colonnes `media_type` et `media_public_id` ont été ajoutées à la table `publications`. Si tu as déjà une base, relance la migration :
+```bash
+npm run migrate
+```
+(la migration drop / recrée toutes les tables, donc à n'utiliser qu'en dev).

@@ -1,0 +1,15 @@
+& "C:\Program Files\PostgreSQL\17\bin\psql.exe" = psql
+
+
+git add .
+git commit -m 'fix admin_app device token saving'
+git push
+
+git remote add eleve-remote git@github.com:thediveronline/ulamayi-eleve.git
+git remote add prof-remote git@github.com:thediveronline/ulamayi-prof.git
+git remote add admin-remote  git@github.com:thediveronline/ulamayi-admin.git
+
+
+git subtree push --prefix frontend/eleves-parents eleve-remote main
+git subtree push --prefix frontend/profs prof-remote main
+git subtree push --prefix frontend/admin admin-remote main

@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+# Build command pour Cloudflare Pages - Ulamayi (frontend eleves-parents)
+# A configurer dans Cloudflare Pages :
+#   Build command           : ./build.sh
+#   Build output directory  : dist
+#   Environment variables   : NODE_VERSION=20  VITE_API_BASE_URL = https://api.ulamayi.com/api
+set -e
+
+echo ">>> Installation des dependances"
+npm ci || npm install
+
+echo ">>> Build Vite (sortie : dist/)"
+npm run build
+
+echo ">>> Build termine."
