@@ -11,3 +11,8 @@ frontend/node_modules/
 *.log
 .DS_Store
 .vscode/
+
+#notes personnelles francky
+PROGRESSION.md
+!frontend/PROGRESSION.md
+notes.txt

@@ -1,0 +1,3 @@
+# Forcer LF pour les scripts shell : sinon Linux (Cloudflare Pages, VPS) refuse
+# de les executer avec une erreur "bad interpreter: /usr/bin/env: bash\r"
+*.sh text eol=lf
