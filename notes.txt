@@ -2,7 +2,7 @@
 
 
 git add .
-git commit -m 'fix vite config'
+git commit -m 'fix server deploy'
 git push
 
 

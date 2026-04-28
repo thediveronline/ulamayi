@@ -4,9 +4,18 @@
 # La base PostgreSQL peut etre locale ou externe (ex: Neon.tech via DATABASE_URL).
 set -e
 
-APP_DIR="/opt/ulamayi/backend"
+# Le repertoire du backend peut etre passe en argument :
+#   ./set_vps.sh /root/opt/ulamayi/backend
+APP_DIR="${1:-/opt/ulamayi/backend}"
 APP_PORT="3000"
 DOMAIN="api.ulamayi.shop"   # remplace par ton domaine
+
+if [ ! -d "$APP_DIR" ]; then
+    echo "[ERREUR] Le repertoire '$APP_DIR' n'existe pas."
+    echo "Usage : $0 [CHEMIN_DU_BACKEND]"
+    echo "Exemple : $0 /root/opt/ulamayi/backend"
+    exit 1
+fi
 
 # 0. Installer les dependances systeme
 apt-get update
