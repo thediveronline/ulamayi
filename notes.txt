@@ -2,12 +2,9 @@
 
 
 git add .
-git commit -m 'fix admin_app device token saving'
+git commit -m 'fix vite config'
 git push
 
-git remote add eleve-remote git@github.com:thediveronline/ulamayi-eleve.git
-git remote add prof-remote git@github.com:thediveronline/ulamayi-prof.git
-git remote add admin-remote  git@github.com:thediveronline/ulamayi-admin.git
 
 
 git subtree push --prefix frontend/eleves-parents eleve-remote main
