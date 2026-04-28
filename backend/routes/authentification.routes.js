@@ -65,4 +65,18 @@ routeur.post('/connexion', async (req, res) => {
     }
 });
 
+routeur.post('/renvoyer-otp', async (req, res) => {
+    try {
+        const { email, role } = req.body;
+        if (!email || !role) {
+            return res.status(400).json({ message: 'Email et rôle sont requis.' });
+        }
+        const resultat = await serviceAuth.renvoyerOTP({ email, role });
+        res.status(200).json(resultat);
+    } catch (erreur) {
+        console.warn('[ERREUR] renvoyer-otp:', erreur);
+        res.status(400).json({ message: erreur.message || 'Envoi impossible.' });
+    }
+});
+
 module.exports = routeur;

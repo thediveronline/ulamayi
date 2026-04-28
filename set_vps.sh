@@ -4,7 +4,7 @@
 # La base PostgreSQL peut etre locale ou externe (ex: Neon.tech via DATABASE_URL).
 set -e
 
-APP_DIR="/opt/ulamayi/backend"
+APP_DIR="APP_DIR="/root/opt/ulamayi/backend"
 APP_PORT="3000"
 DOMAIN="api.ulamayi.shop"   # remplace par ton domaine
 
