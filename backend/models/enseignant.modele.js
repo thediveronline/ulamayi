@@ -53,4 +53,12 @@ const noterEnseignant = async (id, nouvelleNote) => {
     return resultat.rows[0];
 };
 
-module.exports = { trouverParEmail, trouverParId, trouverTous, creer, activerCompte, modifierParId, noterEnseignant };
+const mettreAJour = async (id, { nom, prenom, mot_de_passe, matiere }) => {
+    const resultat = await pool.query(
+        'UPDATE enseignants SET nom = $1, prenom = $2, mot_de_passe = $3, matiere = $4 WHERE id = $5 RETURNING id',
+        [nom, prenom, mot_de_passe, matiere, id]
+    );
+    return resultat.rows[0];
+};
+
+module.exports = { trouverParEmail, trouverParId, trouverTous, creer, activerCompte, modifierParId, noterEnseignant, mettreAJour };

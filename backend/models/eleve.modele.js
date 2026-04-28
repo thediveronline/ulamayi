@@ -44,4 +44,16 @@ const modifierParId = async (id, { nom, prenom, niveau_scolaire, photo_profil })
     return resultat.rows[0];
 };
 
-module.exports = { trouverParEmail, trouverParId, trouverParNiveau, creer, activerCompte, modifierParId };
+const mettreAJour = async (id, { nom, prenom, mot_de_passe, niveau_scolaire }) => {
+    const resultat = await pool.query(
+        'UPDATE eleves SET nom = $1, prenom = $2, mot_de_passe = $3, niveau_scolaire = $4 WHERE id = $5 RETURNING id',
+        [nom, prenom, mot_de_passe, niveau_scolaire, id]
+    );
+    return resultat.rows[0];
+};
+
+module.exports = { trouverParEmail, trouverParId, trouverParNiveau, creer, activerCompte, modifierParId, mettreAJour };
+
+
+// Ajout de la fonction de mise a jour
+
