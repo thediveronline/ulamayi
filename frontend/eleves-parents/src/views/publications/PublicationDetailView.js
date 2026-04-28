@@ -21,8 +21,15 @@ const formatDate = (iso) => {
   }
 };
 
+const isGratuit = (prix) => {
+  const value = Number(prix);
+  return !value || Number.isNaN(value);
+};
+
 const buildMediaSection = (publication) => {
   if (!publication.media_url) return null;
+
+  const gratuit = isGratuit(publication.prix);
 
   const wrapper = createElement({ tag: 'section', className: 'stack' });
   wrapper.append(createElement({ tag: 'h2', text: 'Média' }));
@@ -37,8 +44,15 @@ const buildMediaSection = (publication) => {
     box.append(iframe);
     wrapper.append(box);
 
-    const open = createElement({ tag: 'a', text: 'Ouvrir le PDF dans un nouvel onglet', attrs: { href: publication.media_url, target: '_blank', rel: 'noopener noreferrer' } });
-    wrapper.append(open);
+    if (gratuit) {
+      const open = createElement({ tag: 'a', text: 'Ouvrir le PDF dans un nouvel onglet', attrs: { href: publication.media_url, target: '_blank', rel: 'noopener noreferrer' } });
+      wrapper.append(open);
+
+      const download = createElement({ tag: 'a', text: 'Télécharger le PDF', attrs: { href: publication.media_url, download: `${publication.titre || 'document'}.pdf`, rel: 'noopener noreferrer' } });
+      download.style.display = 'inline-block';
+      download.style.marginTop = '0.5rem';
+      wrapper.append(download);
+    }
   } else {
     const img = document.createElement('img');
     img.src = urlAffichageImage(publication.media_url, { largeur: 1200 }) || publication.media_url;
@@ -47,8 +61,15 @@ const buildMediaSection = (publication) => {
     box.append(img);
     wrapper.append(box);
 
-    const open = createElement({ tag: 'a', text: 'Voir l\'image en pleine résolution', attrs: { href: publication.media_url, target: '_blank', rel: 'noopener noreferrer' } });
-    wrapper.append(open);
+    if (gratuit) {
+      const open = createElement({ tag: 'a', text: 'Voir l\'image en pleine résolution', attrs: { href: publication.media_url, target: '_blank', rel: 'noopener noreferrer' } });
+      wrapper.append(open);
+
+      const download = createElement({ tag: 'a', text: 'Télécharger l\'image', attrs: { href: publication.media_url, download: `${publication.titre || 'image'}`, rel: 'noopener noreferrer' } });
+      download.style.display = 'inline-block';
+      download.style.marginTop = '0.5rem';
+      wrapper.append(download);
+    }
   }
 
   return wrapper;

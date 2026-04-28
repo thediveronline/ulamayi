@@ -2,7 +2,7 @@
 
 
 git add .
-git commit -m 'fix vite config'
+git commit -m 'Ajout structure PWA, bouton téléchargement (pour contenu gratuit)'
 git push
 
 
