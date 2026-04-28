@@ -10,3 +10,10 @@ document.body.append(notificationCenter.element);
 initializeTheme();
 
 createApp(document.querySelector('#app'));
+
+// Reload automatique lors d'une mise a jour du service worker PWA
+if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+        window.location.reload();
+    });
+}
