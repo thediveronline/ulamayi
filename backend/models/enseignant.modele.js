@@ -8,7 +8,7 @@ const trouverParEmail = async (email) => {
 
 const trouverParId = async (id) => {
     const resultat = await pool.query(
-        'SELECT id, nom, prenom, email, matiere, photo_profil, note_moyenne, nombre_avis, est_verifie, cree_le FROM enseignants WHERE id = $1',
+        'SELECT id, nom, prenom, email, matiere, titre, numero_telephone, photo_profil, note_moyenne, nombre_avis, est_verifie, cree_le FROM enseignants WHERE id = $1',
         [id]
     );
     return resultat.rows[0];
@@ -16,15 +16,15 @@ const trouverParId = async (id) => {
 
 const trouverTous = async () => {
     const resultat = await pool.query(
-        'SELECT id, nom, prenom, email, matiere, photo_profil, note_moyenne, nombre_avis, est_verifie, cree_le FROM enseignants ORDER BY cree_le DESC'
+        'SELECT id, nom, prenom, email, matiere, titre, numero_telephone, photo_profil, note_moyenne, nombre_avis, est_verifie, cree_le FROM enseignants ORDER BY cree_le DESC'
     );
     return resultat.rows;
 };
 
-const creer = async ({ nom, prenom, email, mot_de_passe, matiere }) => {
+const creer = async ({ nom, prenom, email, mot_de_passe, matiere, titre, numero_telephone }) => {
     const resultat = await pool.query(
-        'INSERT INTO enseignants (nom, prenom, email, mot_de_passe, matiere) VALUES ($1, $2, $3, $4, $5) RETURNING id, nom, prenom, email',
-        [nom, prenom, email, mot_de_passe, matiere]
+        'INSERT INTO enseignants (nom, prenom, email, mot_de_passe, matiere, titre, numero_telephone) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id, nom, prenom, email',
+        [nom, prenom, email, mot_de_passe, matiere, titre || null, numero_telephone || null]
     );
     return resultat.rows[0];
 };
@@ -33,10 +33,10 @@ const activerCompte = async (email) => {
     await pool.query('UPDATE enseignants SET est_verifie = true WHERE email = $1', [email]);
 };
 
-const modifierParId = async (id, { nom, prenom, matiere, photo_profil }) => {
+const modifierParId = async (id, { nom, prenom, matiere, titre, numero_telephone, photo_profil }) => {
     const resultat = await pool.query(
-        'UPDATE enseignants SET nom = $1, prenom = $2, matiere = $3, photo_profil = $4 WHERE id = $5 RETURNING id, nom, prenom, email, matiere, photo_profil',
-        [nom, prenom, matiere, photo_profil, id]
+        'UPDATE enseignants SET nom = $1, prenom = $2, matiere = $3, titre = $4, numero_telephone = $5, photo_profil = $6 WHERE id = $7 RETURNING id, nom, prenom, email, matiere, titre, numero_telephone, photo_profil',
+        [nom, prenom, matiere, titre, numero_telephone, photo_profil, id]
     );
     return resultat.rows[0];
 };
@@ -53,10 +53,10 @@ const noterEnseignant = async (id, nouvelleNote) => {
     return resultat.rows[0];
 };
 
-const mettreAJour = async (id, { nom, prenom, mot_de_passe, matiere }) => {
+const mettreAJour = async (id, { nom, prenom, mot_de_passe, matiere, titre, numero_telephone }) => {
     const resultat = await pool.query(
-        'UPDATE enseignants SET nom = $1, prenom = $2, mot_de_passe = $3, matiere = $4 WHERE id = $5 RETURNING id',
-        [nom, prenom, mot_de_passe, matiere, id]
+        'UPDATE enseignants SET nom = $1, prenom = $2, mot_de_passe = $3, matiere = $4, titre = $5, numero_telephone = $6 WHERE id = $7 RETURNING id',
+        [nom, prenom, mot_de_passe, matiere, titre, numero_telephone, id]
     );
     return resultat.rows[0];
 };

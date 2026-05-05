@@ -39,4 +39,25 @@ const supprimerUtilisateur = async (id, role) => {
     else throw new Error('Role invalide.');
 };
 
-module.exports = { listerUtilisateurs, obtenirAdmin, modifierAdmin, supprimerUtilisateur };
+const validerEnseignant = async (id) => {
+    const resultat = await pool.query('UPDATE enseignants SET est_verifie = true WHERE id = $1 RETURNING id, nom, prenom, est_verifie', [id]);
+    if (resultat.rowCount === 0) throw new Error('Enseignant introuvable.');
+    return resultat.rows[0];
+};
+
+const obtenirStats = async () => {
+    const [eleves, enseignants, parents, publications] = await Promise.all([
+        pool.query('SELECT COUNT(*) FROM eleves'),
+        pool.query('SELECT COUNT(*) FROM enseignants'),
+        pool.query('SELECT COUNT(*) FROM parents'),
+        pool.query('SELECT COUNT(*) FROM publications'),
+    ]);
+    return {
+        total_eleves: parseInt(eleves.rows[0].count),
+        total_enseignants: parseInt(enseignants.rows[0].count),
+        total_parents: parseInt(parents.rows[0].count),
+        total_publications: parseInt(publications.rows[0].count),
+    };
+};
+
+module.exports = { listerUtilisateurs, obtenirAdmin, modifierAdmin, supprimerUtilisateur, validerEnseignant, obtenirStats };

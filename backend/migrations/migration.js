@@ -10,7 +10,7 @@ const creerTables = async () => {
     try {
         await client.query('BEGIN');
 
-        await client.query('DROP TABLE IF EXISTS otps, publications, parents_eleves, parents, enseignants, eleves, administrateurs CASCADE');
+        await client.query('DROP TABLE IF EXISTS notes_publications, commentaires, favoris, otps, publications, parents_eleves, parents, enseignants, eleves, administrateurs CASCADE');
 
         await client.query(`
             CREATE TABLE administrateurs (
@@ -46,6 +46,8 @@ const creerTables = async () => {
                 email VARCHAR(150) UNIQUE NOT NULL,
                 mot_de_passe TEXT NOT NULL,
                 matiere VARCHAR(100),
+                titre VARCHAR(100), 
+                numero_telephone VARCHAR(20),
                 photo_profil TEXT,
                 note_moyenne NUMERIC(3, 2) DEFAULT 0.00,
                 nombre_avis INTEGER DEFAULT 0,
@@ -88,7 +90,42 @@ const creerTables = async () => {
                 niveau_scolaire VARCHAR(50) NOT NULL,
                 prix NUMERIC(10, 2) DEFAULT 0,
                 enseignant_id INTEGER REFERENCES enseignants(id) ON DELETE SET NULL,
+                nombre_telechargements INTEGER DEFAULT 0,
                 cree_le TIMESTAMP DEFAULT NOW()
+            )
+        `);
+
+        await client.query(`
+            CREATE TABLE favoris (
+                id SERIAL PRIMARY KEY,
+                utilisateur_id INTEGER NOT NULL,
+                role_utilisateur VARCHAR(20) NOT NULL,
+                publication_id INTEGER REFERENCES publications(id) ON DELETE CASCADE,
+                cree_le TIMESTAMP DEFAULT NOW(),
+                UNIQUE(utilisateur_id, role_utilisateur, publication_id)
+            )
+        `);
+
+        await client.query(`
+            CREATE TABLE commentaires (
+                id SERIAL PRIMARY KEY,
+                utilisateur_id INTEGER NOT NULL,
+                role_utilisateur VARCHAR(20) NOT NULL,
+                publication_id INTEGER REFERENCES publications(id) ON DELETE CASCADE,
+                contenu TEXT NOT NULL,
+                cree_le TIMESTAMP DEFAULT NOW()
+            )
+        `);
+
+        await client.query(`
+            CREATE TABLE notes_publications (
+                id SERIAL PRIMARY KEY,
+                utilisateur_id INTEGER NOT NULL,
+                role_utilisateur VARCHAR(20) NOT NULL,
+                publication_id INTEGER REFERENCES publications(id) ON DELETE CASCADE,
+                note INTEGER CHECK (note >= 1 AND note <= 5),
+                cree_le TIMESTAMP DEFAULT NOW(),
+                UNIQUE(utilisateur_id, role_utilisateur, publication_id)
             )
         `);
 
