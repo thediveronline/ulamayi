@@ -1,6 +1,3 @@
-// Modele de la table "administrateurs"
-// Chaque fonction = une operation SQL precise sur cette table
-// On ne met jamais de logique metier ici, uniquement des requetes SQL
 const pool = require('../config/connexion');
 
 const trouverParEmail = async (email) => {
