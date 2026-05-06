@@ -34,4 +34,12 @@ const modifierParId = async (id, { nom, prenom, photo_profil }) => {
     return resultat.rows[0];
 };
 
-module.exports = { trouverParEmail, trouverParId, creer, activerCompte, modifierParId };
+const mettreAJour = async (id, { nom, prenom, mot_de_passe }) => {
+    const resultat = await pool.query(
+        'UPDATE parents SET nom = $1, prenom = $2, mot_de_passe = $3 WHERE id = $4 RETURNING id',
+        [nom, prenom, mot_de_passe, id]
+    );
+    return resultat.rows[0];
+};
+
+module.exports = { trouverParEmail, trouverParId, creer, activerCompte, modifierParId, mettreAJour };

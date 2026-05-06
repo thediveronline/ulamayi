@@ -10,12 +10,36 @@ const creer = async ({ titre, description, contenu, media_url, media_type, media
 };
 
 const trouverTous = async () => {
-    const resultat = await pool.query('SELECT * FROM publications ORDER BY cree_le DESC');
+    const sql = `
+        SELECT 
+            p.*,
+            e.nom as enseignant_nom,
+            e.prenom as enseignant_prenom,
+            e.titre as enseignant_titre,
+            e.numero_telephone as enseignant_telephone,
+            e.photo_profil as enseignant_photo
+        FROM publications p
+        LEFT JOIN enseignants e ON p.enseignant_id = e.id
+        ORDER BY p.cree_le DESC
+    `;
+    const resultat = await pool.query(sql);
     return resultat.rows;
 };
 
 const trouverParId = async (id) => {
-    const resultat = await pool.query('SELECT * FROM publications WHERE id = $1', [id]);
+    const sql = `
+        SELECT 
+            p.*,
+            e.nom as enseignant_nom,
+            e.prenom as enseignant_prenom,
+            e.titre as enseignant_titre,
+            e.numero_telephone as enseignant_telephone,
+            e.photo_profil as enseignant_photo
+        FROM publications p
+        LEFT JOIN enseignants e ON p.enseignant_id = e.id
+        WHERE p.id = $1
+    `;
+    const resultat = await pool.query(sql, [id]);
     return resultat.rows[0];
 };
 

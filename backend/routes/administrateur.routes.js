@@ -36,7 +36,30 @@ routeur.delete('/utilisateurs/:id', async (req, res) => {
         await serviceAdmin.supprimerUtilisateur(req.params.id, req.query.role);
         res.status(200).json({ message: 'Utilisateur supprime avec succes.' });
     } catch (erreur) {
+        console.error('[ADMIN] Erreur suppression:', erreur);
         res.status(400).json({ message: erreur.message });
+    }
+});
+
+// Valider un enseignant (pour qu'il apparaisse dans la liste publique)
+routeur.patch('/enseignants/:id/valider', async (req, res) => {
+    try {
+        const enseignant = await serviceAdmin.validerEnseignant(req.params.id);
+        res.status(200).json({ message: 'Enseignant validé avec succès.', enseignant });
+    } catch (erreur) {
+        console.error('[ADMIN] Erreur validation:', erreur);
+        res.status(400).json({ message: erreur.message });
+    }
+});
+
+// Obtenir les statistiques du dashboard
+routeur.get('/stats', async (req, res) => {
+    try {
+        const stats = await serviceAdmin.obtenirStats();
+        res.status(200).json(stats);
+    } catch (erreur) {
+        console.error('[ADMIN] Erreur stats:', erreur);
+        res.status(500).json({ message: 'Impossible de récupérer les statistiques.' });
     }
 });
 

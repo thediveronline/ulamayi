@@ -12,6 +12,7 @@ const routesEleve = require('./routes/eleve.routes');
 const routesEnseignant = require('./routes/enseignant.routes');
 const routesParent = require('./routes/parent.routes');
 const routesPublication = require('./routes/publication.routes');
+const routesEngagement = require('./routes/engagement.routes');
 
 const app = express();
 
@@ -40,6 +41,7 @@ app.use('/api/eleves', routesEleve);
 app.use('/api/enseignants', routesEnseignant);
 app.use('/api/parents', routesParent);
 app.use('/api/publications', routesPublication);
+app.use('/api/engagement', routesEngagement);
 
 // oute de test pour verifier que le serveur fonctionne
 app.get('/', (req, res) => {
