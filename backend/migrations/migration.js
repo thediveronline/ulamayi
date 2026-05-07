@@ -10,10 +10,11 @@ const creerTables = async () => {
     try {
         await client.query('BEGIN');
 
-        await client.query('DROP TABLE IF EXISTS notes_publications, commentaires, favoris, otps, publications, parents_eleves, parents, enseignants, eleves, administrateurs CASCADE');
+        // Suppression de la ligne DROP TABLE pour éviter de perdre les données
+        // await client.query('DROP TABLE IF EXISTS notes_publications, commentaires, favoris, otps, publications, parents_eleves, parents, enseignants, eleves, administrateurs CASCADE');
 
         await client.query(`
-            CREATE TABLE administrateurs (
+            CREATE TABLE IF NOT EXISTS administrateurs (
                 id SERIAL PRIMARY KEY,
                 nom VARCHAR(100) NOT NULL,
                 email VARCHAR(150) UNIQUE NOT NULL,
@@ -25,7 +26,7 @@ const creerTables = async () => {
         `);
 
         await client.query(`
-            CREATE TABLE eleves (
+            CREATE TABLE IF NOT EXISTS eleves (
                 id SERIAL PRIMARY KEY,
                 nom VARCHAR(100) NOT NULL,
                 prenom VARCHAR(100) NOT NULL,
@@ -39,7 +40,7 @@ const creerTables = async () => {
         `);
 
         await client.query(`
-            CREATE TABLE enseignants (
+            CREATE TABLE IF NOT EXISTS enseignants (
                 id SERIAL PRIMARY KEY,
                 nom VARCHAR(100) NOT NULL,
                 prenom VARCHAR(100) NOT NULL,
@@ -56,8 +57,12 @@ const creerTables = async () => {
             )
         `);
 
+        // Ajout des colonnes au cas où la table existe déjà (pour Neon.tech)
+        await client.query('ALTER TABLE enseignants ADD COLUMN IF NOT EXISTS titre VARCHAR(100)');
+        await client.query('ALTER TABLE enseignants ADD COLUMN IF NOT EXISTS numero_telephone VARCHAR(20)');
+
         await client.query(`
-            CREATE TABLE parents (
+            CREATE TABLE IF NOT EXISTS parents (
                 id SERIAL PRIMARY KEY,
                 nom VARCHAR(100) NOT NULL,
                 prenom VARCHAR(100) NOT NULL,
@@ -70,7 +75,7 @@ const creerTables = async () => {
         `);
 
         await client.query(`
-            CREATE TABLE parents_eleves (
+            CREATE TABLE IF NOT EXISTS parents_eleves (
                 id SERIAL PRIMARY KEY,
                 parent_id INTEGER REFERENCES parents(id) ON DELETE CASCADE,
                 eleve_id INTEGER REFERENCES eleves(id) ON DELETE CASCADE,
@@ -79,7 +84,7 @@ const creerTables = async () => {
         `);
 
         await client.query(`
-            CREATE TABLE publications (
+            CREATE TABLE IF NOT EXISTS publications (
                 id SERIAL PRIMARY KEY,
                 titre VARCHAR(200) NOT NULL,
                 description TEXT,
@@ -96,7 +101,7 @@ const creerTables = async () => {
         `);
 
         await client.query(`
-            CREATE TABLE favoris (
+            CREATE TABLE IF NOT EXISTS favoris (
                 id SERIAL PRIMARY KEY,
                 utilisateur_id INTEGER NOT NULL,
                 role_utilisateur VARCHAR(20) NOT NULL,
@@ -107,7 +112,7 @@ const creerTables = async () => {
         `);
 
         await client.query(`
-            CREATE TABLE commentaires (
+            CREATE TABLE IF NOT EXISTS commentaires (
                 id SERIAL PRIMARY KEY,
                 utilisateur_id INTEGER NOT NULL,
                 role_utilisateur VARCHAR(20) NOT NULL,
@@ -118,7 +123,7 @@ const creerTables = async () => {
         `);
 
         await client.query(`
-            CREATE TABLE notes_publications (
+            CREATE TABLE IF NOT EXISTS notes_publications (
                 id SERIAL PRIMARY KEY,
                 utilisateur_id INTEGER NOT NULL,
                 role_utilisateur VARCHAR(20) NOT NULL,
@@ -130,7 +135,7 @@ const creerTables = async () => {
         `);
 
         await client.query(`
-            CREATE TABLE otps (
+            CREATE TABLE IF NOT EXISTS otps (
                 id SERIAL PRIMARY KEY,
                 email VARCHAR(150) NOT NULL,
                 code VARCHAR(6) NOT NULL,
