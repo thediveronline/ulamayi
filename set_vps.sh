@@ -8,8 +8,7 @@ set -e
 #   ./set_vps.sh /root/opt/ulamayi/backend
 APP_DIR="${1:-/root/opt/ulamayi/backend}"
 APP_PORT="3000"
-DOMAIN="api.ulamayi.shop"   # remplace par ton domaine
-
+DOMAIN="api.ulamayi.online"   
 if [ ! -d "$APP_DIR" ]; then
     echo "[ERREUR] Le repertoire '$APP_DIR' n'existe pas."
     echo "Usage : $0 [CHEMIN_DU_BACKEND]"
