@@ -6,7 +6,7 @@ set -e
 
 # Le repertoire du backend peut etre passe en argument :
 #   ./set_vps.sh /root/opt/ulamayi/backend
-APP_DIR="${1:-/opt/ulamayi/backend}"
+APP_DIR="${1:-/root/opt/ulamayi/backend}"
 APP_PORT="3000"
 DOMAIN="api.ulamayi.shop"   # remplace par ton domaine
 
