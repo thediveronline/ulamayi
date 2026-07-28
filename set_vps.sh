@@ -86,12 +86,15 @@ systemctl restart nginx
 
 echo "Nginx configure pour proxy vers Node sur le port $APP_PORT"
 
-# 5. Commandes utiles
+# 5. Activer HTTPS avec Certbot (Automatique)
+echo "Activation de HTTPS pour $DOMAIN..."
+certbot --nginx -d $DOMAIN --non-interactive --agree-tos --email thediveronline@gmail.com --redirect || echo "[ATTENTION] Certbot n'a pas pu activer HTTPS. Verifiez vos DNS."
+
+# 6. Commandes utiles
 echo ""
 echo "Commandes pour gerer le service :"
 echo "  systemctl restart ulamayi"
 echo "  systemctl status ulamayi"
 echo "  journalctl -u ulamayi -f"
 echo ""
-echo "Pour activer HTTPS avec Certbot, lance :"
-echo "  certbot --nginx -d $DOMAIN"
+echo "Le backend est maintenant operationnel sur https://$DOMAIN"
