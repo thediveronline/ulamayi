@@ -144,6 +144,95 @@ const creerTables = async () => {
             )
         `);
 
+        // --- Nouvelles tables pour la feature Épreuves & Corrections ---
+        await client.query(`
+            CREATE TABLE IF NOT EXISTS epreuves (
+                id SERIAL PRIMARY KEY,
+                eleve_id INTEGER REFERENCES eleves(id) ON DELETE CASCADE,
+                titre VARCHAR(200) NOT NULL,
+                description TEXT,
+                contenu TEXT NOT NULL,
+                media_url TEXT,
+                media_type VARCHAR(20),
+                media_public_id TEXT,
+                niveau_scolaire VARCHAR(50) NOT NULL,
+                nombre_telechargements INTEGER DEFAULT 0,
+                cree_le TIMESTAMP DEFAULT NOW()
+            )
+        `);
+
+        await client.query(`
+            CREATE TABLE IF NOT EXISTS corrections (
+                id SERIAL PRIMARY KEY,
+                enseignant_id INTEGER REFERENCES enseignants(id) ON DELETE SET NULL,
+                epreuve_id INTEGER REFERENCES epreuves(id) ON DELETE CASCADE,
+                titre VARCHAR(200) NOT NULL,
+                description TEXT,
+                contenu TEXT NOT NULL,
+                media_url TEXT,
+                media_type VARCHAR(20),
+                media_public_id TEXT,
+                prix NUMERIC(10, 2) DEFAULT 0,
+                nombre_telechargements INTEGER DEFAULT 0,
+                cree_le TIMESTAMP DEFAULT NOW()
+            )
+        `);
+
+        await client.query(`
+            CREATE TABLE IF NOT EXISTS abonnements (
+                id SERIAL PRIMARY KEY,
+                eleve_id INTEGER REFERENCES eleves(id) ON DELETE CASCADE,
+                correction_id INTEGER REFERENCES corrections(id) ON DELETE CASCADE,
+                cree_le TIMESTAMP DEFAULT NOW(),
+                UNIQUE(eleve_id, correction_id)
+            )
+        `);
+
+        // --- Nouvelles tables V2 : Établissements, Classes, IA ---
+        await client.query(`
+            CREATE TABLE IF NOT EXISTS etablissements (
+                id SERIAL PRIMARY KEY,
+                nom VARCHAR(200) NOT NULL,
+                email VARCHAR(150) UNIQUE NOT NULL,
+                mot_de_passe TEXT NOT NULL,
+                adresse TEXT,
+                telephone VARCHAR(20),
+                photo_profil TEXT,
+                est_verifie BOOLEAN DEFAULT false,
+                cree_le TIMESTAMP DEFAULT NOW()
+            )
+        `);
+
+        await client.query(`
+            CREATE TABLE IF NOT EXISTS classes (
+                id SERIAL PRIMARY KEY,
+                nom VARCHAR(100) NOT NULL,
+                niveau_scolaire VARCHAR(50) NOT NULL,
+                enseignant_id INTEGER REFERENCES enseignants(id) ON DELETE CASCADE,
+                cree_le TIMESTAMP DEFAULT NOW()
+            )
+        `);
+
+        await client.query(`
+            CREATE TABLE IF NOT EXISTS eleves_classes (
+                id SERIAL PRIMARY KEY,
+                eleve_id INTEGER REFERENCES eleves(id) ON DELETE CASCADE,
+                classe_id INTEGER REFERENCES classes(id) ON DELETE CASCADE,
+                rejoint_le TIMESTAMP DEFAULT NOW(),
+                UNIQUE(eleve_id, classe_id)
+            )
+        `);
+
+        await client.query(`
+            CREATE TABLE IF NOT EXISTS historique_ia (
+                id SERIAL PRIMARY KEY,
+                eleve_id INTEGER REFERENCES eleves(id) ON DELETE CASCADE,
+                question TEXT NOT NULL,
+                reponse TEXT NOT NULL,
+                cree_le TIMESTAMP DEFAULT NOW()
+            )
+        `);
+
         await client.query('COMMIT');
         console.log('Migration reussie : toutes les tables ont ete creees.');
     } catch (erreur) {
