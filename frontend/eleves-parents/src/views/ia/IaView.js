@@ -2,80 +2,83 @@ import { poserQuestion, getHistorique } from '../../services/ia.service.js';
 import { createIcon } from '../../components/icon/icon.js';
 import { notify } from '../../components/notifications/notifications.js';
 import { createLoadingCard, createEmptyState } from '../../utils/loading.js';
+import { createElement, createButton } from '../../utils/dom.js';
+
+const appendMessage = (container, content, isUser) => {
+  const msg = createElement({ tag: 'div', className: `chat__msg ${isUser ? 'chat__msg--user' : 'chat__msg--ai'}`, text: content });
+  container.append(msg);
+  container.scrollTop = container.scrollHeight;
+};
+
+const buildHistItem = (item) => {
+  const itemEl = createElement({ tag: 'div', className: 'hist-item' });
+
+  const head = createElement({ tag: 'button', className: 'hist-item__head', attrs: { type: 'button' } });
+  head.append(createIcon('messageSquare', { size: 16 }));
+  head.append(createElement({ tag: 'span', className: 'hist-item__q', text: item.question }));
+
+  const chevron = createElement({ tag: 'span', className: 'hist-item__chevron' });
+  chevron.append(createIcon('chevronRight', { size: 16 }));
+  head.append(chevron);
+
+  const body = createElement({ tag: 'div', className: 'hist-item__body' });
+  const chat = createElement({ tag: 'div', className: 'chat' });
+  chat.append(
+    createElement({ tag: 'div', className: 'chat__msg chat__msg--user', text: item.question }),
+    createElement({ tag: 'div', className: 'chat__msg chat__msg--ai', text: item.reponse })
+  );
+  body.append(chat);
+  if (item.cree_le) {
+    body.append(createElement({ tag: 'span', className: 'subtle', text: new Date(item.cree_le).toLocaleDateString('fr-FR') }));
+  }
+
+  head.addEventListener('click', () => {
+    itemEl.classList.toggle('is-open');
+  });
+
+  itemEl.append(head, body);
+  return itemEl;
+};
 
 export const createIaView = () => {
-  const page = document.createElement('section');
-  page.className = 'page';
+  const page = createElement({ tag: 'section', className: 'page' });
 
-  const header = document.createElement('div');
-  header.className = 'page-header';
-
-  const titleWrap = document.createElement('div');
-  titleWrap.className = 'stack';
-  const title = document.createElement('h1');
-  title.className = 'page-title';
-  title.textContent = 'Tuteur IA';
-  titleWrap.append(title);
-
-  const subtitle = document.createElement('p');
-  subtitle.className = 'page-subtitle';
-  subtitle.textContent = 'Posez vos questions et obtenez des réponses instantanées.';
-  titleWrap.append(subtitle);
-
+  const header = createElement({ tag: 'div', className: 'page-header' });
+  const titleWrap = createElement({ tag: 'div', className: 'stack', attrs: { style: 'gap: 0.25rem;' } });
+  titleWrap.append(
+    createElement({ tag: 'h1', className: 'page-title', text: 'Tuteur IA' }),
+    createElement({ tag: 'p', className: 'page-subtitle', text: 'Posez vos questions et obtenez des réponses instantanées.' })
+  );
   header.append(titleWrap);
   page.append(header);
 
-  const chatCard = document.createElement('div');
-  chatCard.className = 'card stack';
+  const chatCard = createElement({ tag: 'div', className: 'stack' });
 
-  const messagesContainer = document.createElement('div');
-  messagesContainer.className = 'stack';
-  messagesContainer.style.cssText = 'max-height:60vh;overflow-y:auto;padding:var(--space-3) 0';
-
-  const welcomeMsg = document.createElement('div');
-  welcomeMsg.className = 'alert alert-info';
-  welcomeMsg.append(createIcon('sparkle', { size: 18 }));
-  const welcomeText = document.createElement('span');
-  welcomeText.textContent = 'Bonjour ! Je suis votre tuteur virtuel. Posez-moi une question sur vos cours.';
-  welcomeMsg.append(welcomeText);
-  messagesContainer.append(welcomeMsg);
+  const messagesContainer = createElement({ tag: 'div', className: 'chat', attrs: { style: 'max-height: 55vh; overflow-y: auto; padding: var(--space-3) 0;' } });
+  appendMessage(messagesContainer, 'Bonjour ! Je suis votre tuteur virtuel. Posez-moi une question sur vos cours.', false);
 
   chatCard.append(messagesContainer);
 
-  const form = document.createElement('form');
-  form.className = 'row';
-  form.style.cssText = 'display:flex;gap:var(--space-3)';
+  const form = createElement({ tag: 'form', className: 'row', attrs: { style: 'display: flex; gap: var(--space-3);' } });
 
-  const input = document.createElement('input');
-  input.className = 'input';
-  input.type = 'text';
-  input.placeholder = 'Posez votre question...';
-  input.required = true;
+  const input = createElement({ tag: 'input', className: 'input', attrs: { type: 'text', placeholder: 'Posez votre question...', required: '' } });
   input.style.flex = '1';
   form.append(input);
 
-  const submitBtn = document.createElement('button');
+  const submitBtn = createButton({ label: 'Demander', icon: 'sparkle', variant: 'primary' });
   submitBtn.type = 'submit';
-  submitBtn.className = 'btn btn-primary';
-  submitBtn.append(createIcon('sparkle', { size: 18 }));
-  submitBtn.append(' Demander');
   form.append(submitBtn);
 
   chatCard.append(form);
   page.append(chatCard);
 
-  const historiqueCard = document.createElement('div');
-  historiqueCard.className = 'card stack';
+  page.append(createElement({ tag: 'hr', className: 'divider' }));
 
-  const histTitle = document.createElement('h3');
-  histTitle.textContent = 'Historique';
-  historiqueCard.append(histTitle);
+  const historiqueCard = createElement({ tag: 'div', className: 'stack' });
+  historiqueCard.append(createElement({ tag: 'h3', text: 'Historique' }));
 
-  const histContainer = document.createElement('div');
-  histContainer.className = 'stack';
-
-  const loadingHist = createLoadingCard('Chargement de l\'historique...');
-  histContainer.append(loadingHist);
+  const histContainer = createElement({ tag: 'div', className: 'stack' });
+  histContainer.append(createLoadingCard('Chargement de l\'historique...'));
   historiqueCard.append(histContainer);
 
   getHistorique()
@@ -92,37 +95,7 @@ export const createIaView = () => {
         return;
       }
 
-      historique.forEach((item) => {
-        const entry = document.createElement('div');
-        entry.className = 'stack';
-        entry.style.cssText = 'padding:var(--space-3);border:1px solid var(--color-border);border-radius:var(--radius-md)';
-
-        const question = document.createElement('div');
-        question.className = 'row';
-        question.append(createIcon('user', { size: 16 }));
-        const qText = document.createElement('span');
-        qText.style.fontWeight = '600';
-        qText.textContent = item.question;
-        question.append(qText);
-        entry.append(question);
-
-        const reponse = document.createElement('div');
-        reponse.className = 'row';
-        reponse.append(createIcon('sparkle', { size: 16 }));
-        const rText = document.createElement('span');
-        rText.textContent = item.reponse;
-        reponse.append(rText);
-        entry.append(reponse);
-
-        if (item.cree_le) {
-          const date = document.createElement('span');
-          date.className = 'subtle';
-          date.textContent = new Date(item.cree_le).toLocaleDateString('fr-FR');
-          entry.append(date);
-        }
-
-        histContainer.append(entry);
-      });
+      historique.forEach((item) => histContainer.append(buildHistItem(item)));
     })
     .catch(() => {
       histContainer.replaceChildren();
@@ -130,28 +103,12 @@ export const createIaView = () => {
 
   page.append(historiqueCard);
 
-  const appendMessage = (content, isUser = true) => {
-    const msg = document.createElement('div');
-    msg.className = 'row';
-    msg.style.cssText = 'align-items:flex-start';
-
-    msg.append(createIcon(isUser ? 'user' : 'sparkle', { size: 18 }));
-
-    const text = document.createElement('span');
-    text.style.cssText = 'flex:1;line-height:1.6';
-    text.textContent = content;
-    msg.append(text);
-
-    messagesContainer.append(msg);
-    messagesContainer.scrollTop = messagesContainer.scrollHeight;
-  };
-
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
     const question = input.value.trim();
     if (!question) return;
 
-    appendMessage(question, true);
+    appendMessage(messagesContainer, question, true);
     input.value = '';
     submitBtn.disabled = true;
     submitBtn.textContent = 'Réflexion...';
@@ -159,14 +116,14 @@ export const createIaView = () => {
     try {
       const result = await poserQuestion(question);
       const reponse = result?.donnees?.reponse || result?.message || 'Je n\'ai pas pu traiter votre question.';
-      appendMessage(reponse, false);
+      appendMessage(messagesContainer, reponse, false);
     } catch (err) {
-      appendMessage(`Erreur : ${err.message}`, false);
+      appendMessage(messagesContainer, `Erreur : ${err.message}`, false);
     } finally {
       submitBtn.disabled = false;
-      submitBtn.innerHTML = '';
+      submitBtn.replaceChildren();
       submitBtn.append(createIcon('sparkle', { size: 18 }));
-      submitBtn.append(' Demander');
+      submitBtn.append(createElement({ tag: 'span', text: 'Demander' }));
     }
   });
 

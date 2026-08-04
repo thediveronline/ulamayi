@@ -38,10 +38,7 @@ const buildMediaSection = (publication) => {
   const box = createElement({ tag: 'div', className: 'pub-media' });
 
   if (publication.media_type === 'pdf') {
-    const iframe = document.createElement('iframe');
-    iframe.src = publication.media_url;
-    iframe.title = publication.titre || 'PDF';
-    iframe.setAttribute('loading', 'lazy');
+    const iframe = createElement({ tag: 'iframe', attrs: { src: publication.media_url, title: publication.titre || 'PDF', loading: 'lazy' } });
     box.append(iframe);
     wrapper.append(box);
 
@@ -55,10 +52,7 @@ const buildMediaSection = (publication) => {
       wrapper.append(download);
     }
   } else {
-    const img = document.createElement('img');
-    img.src = urlAffichageImage(publication.media_url, { largeur: 1200 }) || publication.media_url;
-    img.alt = publication.titre || 'Média';
-    img.loading = 'lazy';
+    const img = createElement({ tag: 'img', attrs: { src: urlAffichageImage(publication.media_url, { largeur: 1200 }) || publication.media_url, alt: publication.titre || 'Média', loading: 'lazy' } });
     box.append(img);
     wrapper.append(box);
 
@@ -124,7 +118,7 @@ const buildEngagementSection = (publicationId) => {
 
   wrapper.append(actions);
 
-  const commentairesCard = createElement({ tag: 'div', className: 'card stack' });
+  const commentairesCard = createElement({ tag: 'div', className: 'stack' });
   commentairesCard.append(createElement({ tag: 'h3', text: 'Commentaires' }));
 
   const commentairesList = createElement({ tag: 'div', className: 'stack' });
@@ -139,17 +133,12 @@ const buildEngagementSection = (publicationId) => {
         return;
       }
       commentaires.forEach((c) => {
-        const item = createElement({ tag: 'div', className: 'card-compact stack' });
-        item.style.cssText = 'padding:var(--space-3);border:1px solid var(--color-border);border-radius:var(--radius-md)';
+        const item = createElement({ tag: 'div', className: 'stack', attrs: { style: 'padding: var(--space-3); border: 1px solid var(--color-border); border-radius: var(--radius-md);' } });
 
-        const header = createElement({ tag: 'div', className: 'row-between' });
         const authorName = c.prenom_utilisateur || c.nom_utilisateur
           ? `${c.prenom_utilisateur || ''} ${c.nom_utilisateur || ''}`.trim()
           : 'Anonyme';
-        const author = createElement({ tag: 'strong', text: authorName });
-        header.append(author);
-
-        item.append(header);
+        item.append(createElement({ tag: 'strong', text: authorName }));
         item.append(createElement({ tag: 'p', text: c.contenu }));
 
         if (c.cree_le) {
@@ -163,15 +152,9 @@ const buildEngagementSection = (publicationId) => {
       commentairesList.replaceChildren(createElement({ tag: 'p', className: 'muted', text: 'Impossible de charger les commentaires.' }));
     });
 
-  const commentForm = document.createElement('form');
-  commentForm.className = 'row';
-  commentForm.style.cssText = 'display:flex;gap:var(--space-3)';
+  const commentForm = createElement({ tag: 'form', className: 'row', attrs: { style: 'display: flex; gap: var(--space-3);' } });
 
-  const commentInput = document.createElement('input');
-  commentInput.className = 'input';
-  commentInput.type = 'text';
-  commentInput.placeholder = 'Ajouter un commentaire...';
-  commentInput.required = true;
+  const commentInput = createElement({ tag: 'input', className: 'input', attrs: { type: 'text', placeholder: 'Ajouter un commentaire...', required: '' } });
   commentInput.style.flex = '1';
   commentForm.append(commentInput);
 
@@ -215,7 +198,7 @@ export const createPublicationDetailView = (context = {}) => {
     return page;
   }
 
-  const card = createElement({ tag: 'article', className: 'card stack-lg' });
+  const card = createElement({ tag: 'article', className: 'stack-lg' });
   card.append(createLoadingCard('Chargement de la publication...'));
   page.append(card);
 
@@ -228,12 +211,12 @@ export const createPublicationDetailView = (context = {}) => {
       const badges = createElement({ tag: 'div', className: 'row' });
       badges.append(createElement({ tag: 'span', className: 'badge badge-primary', text: publication.niveau_scolaire || 'Tous niveaux' }));
       if (Number(publication.prix) > 0) {
-        badges.append(createElement({ tag: 'span', className: 'badge badge-accent', text: formatPrice(publication.prix) }));
+        badges.append(createElement({ tag: 'span', className: 'badge badge-primary', text: formatPrice(publication.prix) }));
       } else {
         badges.append(createElement({ tag: 'span', className: 'badge badge-success', text: 'Gratuit' }));
       }
       if (publication.media_type === 'pdf') {
-        badges.append(createElement({ tag: 'span', className: 'badge badge-info', text: 'PDF' }));
+        badges.append(createElement({ tag: 'span', className: 'badge', text: 'PDF' }));
       }
       const dateText = formatDate(publication.cree_le);
       if (dateText) {

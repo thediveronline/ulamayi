@@ -2,66 +2,40 @@ import { getAllEpreuves, deleteEpreuve } from '../../services/epreuve.service.js
 import { createIcon } from '../../components/icon/icon.js';
 import { notify } from '../../components/notifications/notifications.js';
 import { createLoadingCard, createEmptyState } from '../../utils/loading.js';
+import { createElement } from '../../utils/dom.js';
 import { getSession } from '../../utils/session.js';
 
-const EpreuveCard = (epreuve, isOwner, onDelete) => {
-  const card = document.createElement('a');
-  card.className = 'card card-hover';
-  card.href = `#/epreuves/${epreuve.id}`;
-  card.style.cssText = 'display:grid;gap:var(--space-2)';
+const EpreuveRow = (epreuve, isOwner, onDelete) => {
+  const row = createElement({ tag: 'article', className: 'row', attrs: { style: 'align-items: flex-start; gap: 1rem; cursor: pointer; padding: var(--space-3) 0;' } });
+  row.dataset.id = epreuve.id;
 
-  const title = document.createElement('h3');
-  title.textContent = epreuve.titre || 'Sans titre';
-  card.append(title);
+  const body = createElement({ tag: 'div', className: 'stack', attrs: { style: 'gap: 0.25rem; flex: 1; min-width: 0;' } });
+  body.append(createElement({ tag: 'h3', text: epreuve.titre || 'Sans titre' }));
 
   if (epreuve.description) {
-    const desc = document.createElement('p');
-    desc.className = 'muted';
-    desc.style.cssText = 'font-size:0.9rem;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden';
-    desc.textContent = epreuve.description;
-    card.append(desc);
+    body.append(createElement({ tag: 'p', className: 'muted', attrs: { style: 'font-size: 0.9rem;' } }));
+    body.lastChild.textContent = epreuve.description;
   }
 
-  const meta = document.createElement('div');
-  meta.className = 'row-between';
-  meta.style.marginTop = 'auto';
-
-  const badges = document.createElement('div');
-  badges.className = 'row';
-
+  const meta = createElement({ tag: 'div', className: 'row', attrs: { style: 'gap: var(--space-2);' } });
   if (epreuve.niveau_scolaire) {
-    const niveau = document.createElement('span');
-    niveau.className = 'badge badge-primary';
-    niveau.textContent = epreuve.niveau_scolaire;
-    badges.append(niveau);
+    meta.append(createElement({ tag: 'span', className: 'badge badge-primary', text: epreuve.niveau_scolaire }));
   }
-
   if (epreuve.media_type) {
-    const type = document.createElement('span');
-    type.className = 'badge badge-accent';
-    type.textContent = epreuve.media_type === 'pdf' ? 'PDF' : 'Image';
-    badges.append(type);
+    meta.append(createElement({ tag: 'span', className: 'badge', text: epreuve.media_type === 'pdf' ? 'PDF' : 'Image' }));
   }
+  if (epreuve.cree_le) {
+    meta.append(createElement({ tag: 'span', className: 'subtle', text: new Date(epreuve.cree_le).toLocaleDateString('fr-FR') }));
+  }
+  body.append(meta);
 
-  meta.append(badges);
-
-  const date = document.createElement('span');
-  date.className = 'subtle';
-  date.textContent = epreuve.cree_le ? new Date(epreuve.cree_le).toLocaleDateString('fr-FR') : '';
-  meta.append(date);
-
-  card.append(meta);
+  row.append(body);
 
   if (isOwner) {
-    const actions = document.createElement('div');
-    actions.className = 'row';
-    actions.style.marginTop = 'var(--space-2)';
-
     const deleteBtn = document.createElement('button');
     deleteBtn.type = 'button';
     deleteBtn.className = 'btn btn-danger btn-sm';
     deleteBtn.append(createIcon('trash', { size: 16 }));
-    deleteBtn.append(' Supprimer');
     deleteBtn.addEventListener('click', async (e) => {
       e.preventDefault();
       e.stopPropagation();
@@ -74,32 +48,25 @@ const EpreuveCard = (epreuve, isOwner, onDelete) => {
         notify({ tone: 'danger', message: err.message });
       }
     });
-    actions.append(deleteBtn);
-    card.append(actions);
+    row.append(deleteBtn);
   }
 
-  return card;
+  row.addEventListener('click', () => {
+    window.location.hash = `/epreuves/${epreuve.id}`;
+  });
+
+  return row;
 };
 
 export const createEpreuvesView = () => {
-  const page = document.createElement('section');
-  page.className = 'page';
+  const page = createElement({ tag: 'section', className: 'page' });
 
-  const header = document.createElement('div');
-  header.className = 'page-header';
-
-  const titleWrap = document.createElement('div');
-  titleWrap.className = 'stack';
-  const title = document.createElement('h1');
-  title.className = 'page-title';
-  title.textContent = 'Épreuves';
-  titleWrap.append(title);
-
-  const subtitle = document.createElement('p');
-  subtitle.className = 'page-subtitle';
-  subtitle.textContent = 'Catalogue des épreuves publiées par les élèves.';
-  titleWrap.append(subtitle);
-
+  const header = createElement({ tag: 'div', className: 'page-header' });
+  const titleWrap = createElement({ tag: 'div', className: 'stack', attrs: { style: 'gap: 0.25rem;' } });
+  titleWrap.append(
+    createElement({ tag: 'h1', className: 'page-title', text: 'Épreuves' }),
+    createElement({ tag: 'p', className: 'page-subtitle', text: 'Catalogue des épreuves publiées par les élèves.' })
+  );
   header.append(titleWrap);
 
   const session = getSession();
@@ -116,8 +83,7 @@ export const createEpreuvesView = () => {
 
   page.append(header);
 
-  const list = document.createElement('div');
-  list.className = 'stack-lg';
+  const list = createElement({ tag: 'div', className: 'stack' });
   page.append(list);
 
   const loadEpreuves = () => {
@@ -137,16 +103,16 @@ export const createEpreuvesView = () => {
         }
 
         list.replaceChildren();
-        epreuves.forEach((ep) => {
-          list.append(EpreuveCard(ep, false, loadEpreuves));
+        epreuves.forEach((ep, index) => {
+          if (index > 0) {
+            list.append(createElement({ tag: 'hr', className: 'divider' }));
+          }
+          list.append(EpreuveRow(ep, isEleve && session?.utilisateur?.id === ep.eleve_id, loadEpreuves));
         });
       })
       .catch((err) => {
-        list.replaceChildren();
-        const errorCard = document.createElement('div');
-        errorCard.className = 'card';
-        errorCard.textContent = err.message;
-        list.append(errorCard);
+        list.replaceChildren(createElement({ tag: 'div', className: 'alert alert-danger' }));
+        list.lastChild.textContent = err.message;
       });
   };
 

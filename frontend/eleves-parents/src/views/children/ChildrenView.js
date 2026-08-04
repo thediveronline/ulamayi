@@ -1,33 +1,33 @@
 import { getChildren } from '../../services/parent.service.js';
 import { notify } from '../../components/notifications/notifications.js';
-import { createElement, createButton } from '../../utils/dom.js';
+import { createElement } from '../../utils/dom.js';
 import { createLoadingCard } from '../../utils/loading.js';
 import { createIcon } from '../../components/icon/icon.js';
 import { createAlert } from '../../components/alert/alert.js';
 
-const buildChildCard = (child) => {
-  const card = createElement({ tag: 'article', className: 'card card-hover stack' });
+const buildChildRow = (child) => {
+  const row = createElement({ tag: 'article', className: 'row', attrs: { style: 'align-items: center; gap: 1rem; cursor: pointer; padding: var(--space-3) 0;' } });
 
-  const top = createElement({ tag: 'div', className: 'row' });
-  const avatar = createElement({ tag: 'div', className: 'empty-state-icon', attrs: { style: 'width: 44px; height: 44px;' } });
+  const avatar = createElement({ tag: 'div', className: 'empty-state-icon', attrs: { style: 'width: 44px; height: 44px; flex-shrink: 0;' } });
   avatar.append(createIcon('user', { size: 20 }));
 
-  const info = createElement({ tag: 'div', className: 'stack', attrs: { style: 'gap: 0.125rem;' } });
+  const info = createElement({ tag: 'div', className: 'stack', attrs: { style: 'gap: 0.125rem; flex: 1; min-width: 0;' } });
   info.append(
     createElement({ tag: 'h3', text: `${child.prenom || ''} ${child.nom || ''}`.trim() || 'Élève' }),
     createElement({ tag: 'span', className: 'badge badge-primary', text: child.niveau_scolaire || 'Niveau non défini' })
   );
 
-  top.append(avatar, info);
-  card.append(top);
+  row.append(avatar, info);
 
-  const btn = createButton({ label: 'Voir le suivi', icon: 'chevronRight', iconPosition: 'right', variant: 'secondary', size: 'sm' });
-  btn.addEventListener('click', () => {
+  const chevron = createElement({ tag: 'div', attrs: { style: 'color: var(--color-text-subtle);' } });
+  chevron.append(createIcon('chevronRight', { size: 18 }));
+  row.append(chevron);
+
+  row.addEventListener('click', () => {
     window.location.hash = `/enfants/${child.id}/suivi`;
   });
-  card.append(btn);
 
-  return card;
+  return row;
 };
 
 const buildEmpty = () => {
@@ -52,7 +52,7 @@ export const createChildrenView = () => {
   );
   page.append(header);
 
-  const list = createElement({ tag: 'div', className: 'grid-cards' });
+  const list = createElement({ tag: 'div', className: 'stack' });
   list.append(createLoadingCard('Chargement des enfants...'));
   page.append(list);
 
@@ -63,7 +63,12 @@ export const createChildrenView = () => {
         list.append(buildEmpty());
         return;
       }
-      children.forEach((child) => list.append(buildChildCard(child)));
+      children.forEach((child, index) => {
+        if (index > 0) {
+          list.append(createElement({ tag: 'hr', className: 'divider' }));
+        }
+        list.append(buildChildRow(child));
+      });
     })
     .catch((error) => {
       list.replaceChildren(createAlert({ tone: 'danger', message: error.message }));

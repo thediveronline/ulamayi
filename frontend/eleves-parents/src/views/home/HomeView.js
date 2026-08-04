@@ -1,116 +1,131 @@
 import { createElement, createButton } from '../../utils/dom.js';
 import { createIcon } from '../../components/icon/icon.js';
 import { isAuthenticated, getUser, getUserRole } from '../../utils/session.js';
+import { getPublicationsForCurrentUser } from '../../services/publication.service.js';
+import { createLoadingCard } from '../../utils/loading.js';
 
-const FEATURES = [
-  {
-    icon: 'book',
-    title: 'Publications',
-    text: 'Consulte les épreuves et exercices publiés par les enseignants, filtrés selon ton niveau scolaire.'
-  },
-  {
-    icon: 'users',
-    title: 'Suivi des enfants',
-    text: 'En tant que parent, accède à la liste de tes enfants et suis leurs publications adaptées.'
-  },
-  {
-    icon: 'shield',
-    title: 'Compte sécurisé',
-    text: 'Authentification par email avec vérification OTP et session protégée par jeton JWT.'
+const buildTile = ({ icon, label, hint, href }) => {
+  const tile = createElement({ tag: 'a', className: 'dash-tile', attrs: { href: `#${href}` } });
+  const iconWrap = createElement({ tag: 'div', className: 'dash-tile__icon' });
+  iconWrap.append(createIcon(icon, { size: 18 }));
+
+  const text = createElement({ tag: 'div', className: 'stack', attrs: { style: 'gap: 0.125rem;' } });
+  text.append(createElement({ tag: 'span', className: 'dash-tile__label', text: label }));
+  if (hint) {
+    text.append(createElement({ tag: 'span', className: 'dash-tile__hint', text: hint }));
   }
-];
 
-const renderHeroAuthenticated = (page) => {
-  const user = getUser();
-  const role = getUserRole();
-  const prenom = user?.nom || user?.prenom || 'toi';
+  tile.append(iconWrap, text);
+  return tile;
+};
 
-  const hero = createElement({ tag: 'section', className: 'card' });
-  const inner = createElement({ tag: 'div', className: 'stack' });
+const buildActions = (role) => {
+  const actions = [
+    { icon: 'book', label: 'Publications', hint: 'Épreuves et exercices', href: '/publications' }
+  ];
 
-  inner.append(
-    createElement({ tag: 'span', className: 'badge badge-primary', text: role === 'parent' ? 'Espace parent' : 'Espace élève' }),
-    createElement({ tag: 'h1', className: 'page-title', text: `Content de te revoir, ${prenom}` }),
-    createElement({ tag: 'p', className: 'page-subtitle', text: 'Reprends là où tu en étais : explore les publications, mets à jour ton profil ou consulte les paramètres.' })
-  );
-
-  const actions = createElement({ tag: 'div', className: 'row' });
-  const btnPubs = createButton({ label: 'Voir les publications', icon: 'book', variant: 'primary' });
-  btnPubs.addEventListener('click', () => { window.location.hash = '/publications'; });
-
-  const btnProfil = createButton({ label: 'Mon profil', icon: 'user', variant: 'secondary' });
-  btnProfil.addEventListener('click', () => { window.location.hash = '/profil'; });
-
-  actions.append(btnPubs, btnProfil);
+  if (role === 'eleve') {
+    actions.push(
+      { icon: 'bookOpen', label: 'Épreuves', hint: 'Catalogue et mes épreuves', href: '/epreuves' },
+      { icon: 'sparkle', label: 'Tuteur IA', hint: 'Pose tes questions', href: '/ia' }
+    );
+  }
 
   if (role === 'parent') {
-    const btnEnfants = createButton({ label: 'Enfants', icon: 'users', variant: 'secondary' });
-    btnEnfants.addEventListener('click', () => { window.location.hash = '/enfants'; });
-    actions.append(btnEnfants);
+    actions.push({ icon: 'users', label: 'Enfants', hint: 'Suivi scolaire', href: '/enfants' });
   }
 
-  inner.append(actions);
-  hero.append(inner);
-  page.append(hero);
+  actions.push(
+    { icon: 'user', label: 'Profil', href: '/profil' },
+    { icon: 'settings', label: 'Paramètres', href: '/parametres' }
+  );
+
+  return actions;
 };
 
-const renderHeroGuest = (page) => {
-  const hero = createElement({ tag: 'section', className: 'card' });
-  const inner = createElement({ tag: 'div', className: 'stack' });
+const renderAuthenticated = (page) => {
+  const user = getUser();
+  const role = getUserRole();
+  const prenom = user?.prenom || user?.nom || '';
 
-  inner.append(
-    createElement({ tag: 'span', className: 'badge badge-accent', text: 'Plateforme éducative' }),
+  const greeting = createElement({ tag: 'section', className: 'stack', attrs: { style: 'gap: 0.25rem;' } });
+  greeting.append(
+    createElement({ tag: 'h1', className: 'page-title', text: prenom ? `Bonjour, ${prenom}` : 'Bonjour' }),
+    createElement({ tag: 'p', className: 'muted', text: 'Que veux-tu faire aujourd\'hui ?' })
+  );
+  page.append(greeting);
+
+  const grid = createElement({ tag: 'div', className: 'dash-grid' });
+  buildActions(role).forEach((action) => grid.append(buildTile(action)));
+  page.append(grid);
+
+  // Recent publications
+  const recent = createElement({ tag: 'section', className: 'stack-lg' });
+  const recentHeader = createElement({ tag: 'div', className: 'row-between' });
+  recentHeader.append(createElement({ tag: 'h2', text: 'Publications récentes' }));
+  const seeAll = createElement({ tag: 'a', attrs: { href: '#/publications' }, text: 'Tout voir' });
+  recentHeader.append(seeAll);
+  recent.append(recentHeader);
+
+  const list = createElement({ tag: 'div', className: 'stack' });
+  list.append(createLoadingCard('Chargement...'));
+  recent.append(list);
+  page.append(recent);
+
+  getPublicationsForCurrentUser()
+    .then((items) => {
+      const pubs = Array.isArray(items) ? items.slice(0, 4) : [];
+      list.replaceChildren();
+      if (!pubs.length) {
+        list.append(createElement({ tag: 'p', className: 'muted', text: 'Aucune publication disponible pour le moment.' }));
+        return;
+      }
+      pubs.forEach((item, index) => {
+        if (index > 0) {
+          list.append(createElement({ tag: 'hr', className: 'divider' }));
+        }
+        const row = createElement({ tag: 'div', className: 'list-row' });
+        const text = createElement({ tag: 'div', className: 'stack', attrs: { style: 'gap: 0.125rem; flex: 1; min-width: 0;' } });
+        text.append(
+          createElement({ tag: 'span', className: 'list-row__title', text: item.titre || 'Sans titre' }),
+          createElement({ tag: 'span', className: 'list-row__meta', text: item.niveau_scolaire || 'Tous niveaux' })
+        );
+        row.append(text);
+        row.append(createIcon('chevronRight', { size: 16 }));
+        row.addEventListener('click', () => { window.location.hash = `/publications/${item.id}`; });
+        list.append(row);
+      });
+    })
+    .catch(() => {
+      list.replaceChildren(createElement({ tag: 'p', className: 'muted', text: 'Impossible de charger les publications.' }));
+    });
+};
+
+const renderGuest = (page) => {
+  const hero = createElement({ tag: 'section', className: 'stack' });
+  hero.append(
     createElement({ tag: 'h1', className: 'page-title', text: 'Apprends, suis, progresse avec Ulamayi' }),
-    createElement({ tag: 'p', className: 'page-subtitle', text: 'Une plateforme dédiée aux élèves et aux parents pour accéder aux épreuves et au suivi scolaire.' })
+    createElement({ tag: 'p', className: 'page-subtitle', text: 'Accède aux épreuves, aux exercices et au suivi scolaire de tes enfants.' })
   );
 
   const actions = createElement({ tag: 'div', className: 'row' });
-
   const btnSignup = createButton({ label: "Créer un compte", icon: 'signup', variant: 'primary' });
   btnSignup.addEventListener('click', () => { window.location.hash = '/inscription'; });
-
   const btnLogin = createButton({ label: 'Se connecter', icon: 'login', variant: 'secondary' });
   btnLogin.addEventListener('click', () => { window.location.hash = '/connexion'; });
-
   actions.append(btnSignup, btnLogin);
-  inner.append(actions);
-  hero.append(inner);
+  hero.append(actions);
   page.append(hero);
-};
-
-const renderFeatures = (page) => {
-  const section = createElement({ tag: 'section', className: 'stack' });
-  section.append(createElement({ tag: 'h2', text: 'Ce que tu peux faire' }));
-
-  const grid = createElement({ tag: 'div', className: 'grid-cards' });
-
-  FEATURES.forEach((feature) => {
-    const card = createElement({ tag: 'article', className: 'card stack' });
-
-    const iconWrapper = createElement({ tag: 'div', className: 'empty-state-icon' });
-    iconWrapper.append(createIcon(feature.icon, { size: 24 }));
-
-    card.append(
-      iconWrapper,
-      createElement({ tag: 'h3', text: feature.title }),
-      createElement({ tag: 'p', className: 'muted', text: feature.text })
-    );
-    grid.append(card);
-  });
-
-  section.append(grid);
-  page.append(section);
 };
 
 export const createHomeView = () => {
   const page = createElement({ tag: 'section', className: 'page' });
 
   if (isAuthenticated()) {
-    renderHeroAuthenticated(page);
+    renderAuthenticated(page);
   } else {
-    renderHeroGuest(page);
+    renderGuest(page);
   }
 
-  renderFeatures(page);
   return page;
 };

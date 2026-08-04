@@ -2,26 +2,17 @@ import { getMesEpreuves, deleteEpreuve } from '../../services/epreuve.service.js
 import { createIcon } from '../../components/icon/icon.js';
 import { notify } from '../../components/notifications/notifications.js';
 import { createLoadingCard, createEmptyState } from '../../utils/loading.js';
+import { createElement } from '../../utils/dom.js';
 
 export const createMesEpreuvesView = () => {
-  const page = document.createElement('section');
-  page.className = 'page';
+  const page = createElement({ tag: 'section', className: 'page' });
 
-  const header = document.createElement('div');
-  header.className = 'page-header';
-
-  const titleWrap = document.createElement('div');
-  titleWrap.className = 'stack';
-  const title = document.createElement('h1');
-  title.className = 'page-title';
-  title.textContent = 'Mes épreuves';
-  titleWrap.append(title);
-
-  const subtitle = document.createElement('p');
-  subtitle.className = 'page-subtitle';
-  subtitle.textContent = 'Les épreuves que vous avez publiées.';
-  titleWrap.append(subtitle);
-
+  const header = createElement({ tag: 'div', className: 'page-header' });
+  const titleWrap = createElement({ tag: 'div', className: 'stack', attrs: { style: 'gap: 0.25rem;' } });
+  titleWrap.append(
+    createElement({ tag: 'h1', className: 'page-title', text: 'Mes épreuves' }),
+    createElement({ tag: 'p', className: 'page-subtitle', text: 'Les épreuves que vous avez publiées.' })
+  );
   header.append(titleWrap);
 
   const createBtn = document.createElement('a');
@@ -33,8 +24,7 @@ export const createMesEpreuvesView = () => {
 
   page.append(header);
 
-  const list = document.createElement('div');
-  list.className = 'stack-lg';
+  const list = createElement({ tag: 'div', className: 'stack' });
   page.append(list);
 
   const loadEpreuves = () => {
@@ -62,18 +52,27 @@ export const createMesEpreuvesView = () => {
         }
 
         list.replaceChildren();
-        epreuves.forEach((ep) => {
-          const card = document.createElement('a');
-          card.className = 'card card-hover';
-          card.href = `#/epreuves/${ep.id}`;
-          card.style.cssText = 'display:grid;gap:var(--space-2)';
+        epreuves.forEach((ep, index) => {
+          if (index > 0) {
+            list.append(createElement({ tag: 'hr', className: 'divider' }));
+          }
 
-          const headerRow = document.createElement('div');
-          headerRow.className = 'row-between';
+          const row = createElement({ tag: 'article', className: 'row', attrs: { style: 'align-items: center; gap: 1rem; cursor: pointer; padding: var(--space-3) 0;' } });
+          row.dataset.id = ep.id;
 
-          const titleEl = document.createElement('h3');
-          titleEl.textContent = ep.titre || 'Sans titre';
-          headerRow.append(titleEl);
+          const body = createElement({ tag: 'div', className: 'stack', attrs: { style: 'gap: 0.25rem; flex: 1; min-width: 0;' } });
+          body.append(createElement({ tag: 'h3', text: ep.titre || 'Sans titre' }));
+
+          const meta = createElement({ tag: 'div', className: 'row', attrs: { style: 'gap: var(--space-2);' } });
+          if (ep.niveau_scolaire) {
+            meta.append(createElement({ tag: 'span', className: 'badge badge-primary', text: ep.niveau_scolaire }));
+          }
+          if (ep.cree_le) {
+            meta.append(createElement({ tag: 'span', className: 'subtle', text: new Date(ep.cree_le).toLocaleDateString('fr-FR') }));
+          }
+          body.append(meta);
+
+          row.append(body);
 
           const deleteBtn = document.createElement('button');
           deleteBtn.type = 'button';
@@ -91,37 +90,18 @@ export const createMesEpreuvesView = () => {
               notify({ tone: 'danger', message: err.message });
             }
           });
-          headerRow.append(deleteBtn);
+          row.append(deleteBtn);
 
-          card.append(headerRow);
+          row.addEventListener('click', () => {
+            window.location.hash = `/epreuves/${ep.id}`;
+          });
 
-          const meta = document.createElement('div');
-          meta.className = 'row';
-
-          if (ep.niveau_scolaire) {
-            const niveau = document.createElement('span');
-            niveau.className = 'badge badge-primary';
-            niveau.textContent = ep.niveau_scolaire;
-            meta.append(niveau);
-          }
-
-          if (ep.cree_le) {
-            const date = document.createElement('span');
-            date.className = 'subtle';
-            date.textContent = new Date(ep.cree_le).toLocaleDateString('fr-FR');
-            meta.append(date);
-          }
-
-          card.append(meta);
-          list.append(card);
+          list.append(row);
         });
       })
       .catch((err) => {
-        list.replaceChildren();
-        const errorCard = document.createElement('div');
-        errorCard.className = 'card';
-        errorCard.textContent = err.message;
-        list.append(errorCard);
+        list.replaceChildren(createElement({ tag: 'div', className: 'alert alert-danger' }));
+        list.lastChild.textContent = err.message;
       });
   };
 
