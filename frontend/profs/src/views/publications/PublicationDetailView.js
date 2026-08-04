@@ -1,4 +1,5 @@
 import { getPublicationById, deletePublication } from '../../services/publication.service.js';
+import { getCommentaires } from '../../services/engagement.service.js';
 import { createElement, createButton } from '../../utils/dom.js';
 import { createLoadingCard, setLoadingState } from '../../utils/loading.js';
 import { createAlert } from '../../components/alert/alert.js';
@@ -141,6 +142,44 @@ export const createPublicationDetailView = (context = {}) => {
       contentSection.append(contentBody);
 
       card.append(contentSection);
+
+      const engagementSection = createElement({ tag: 'section', className: 'stack' });
+      engagementSection.append(createElement({ tag: 'hr', className: 'divider' }));
+      engagementSection.append(createElement({ tag: 'h2', text: 'Commentaires' }));
+
+      const commentairesList = createElement({ tag: 'div', className: 'stack' });
+      commentairesList.append(createLoadingCard('Chargement des commentaires...'));
+      engagementSection.append(commentairesList);
+      card.append(engagementSection);
+
+      getCommentaires(id)
+        .then((commentaires) => {
+          commentairesList.replaceChildren();
+          if (!commentaires || !commentaires.length) {
+            commentairesList.append(createElement({ tag: 'p', className: 'muted', text: 'Aucun commentaire pour le moment.' }));
+            return;
+          }
+          commentaires.forEach((c) => {
+            const item = createElement({ tag: 'div', className: 'stack' });
+            item.style.cssText = 'padding:var(--space-3);border:1px solid var(--color-border);border-radius:var(--radius-md)';
+
+            const authorName = c.prenom_utilisateur || c.nom_utilisateur
+              ? `${c.prenom_utilisateur || ''} ${c.nom_utilisateur || ''}`.trim()
+              : 'Anonyme';
+            const author = createElement({ tag: 'strong', text: authorName });
+            item.append(author);
+            item.append(createElement({ tag: 'p', text: c.contenu }));
+
+            if (c.cree_le) {
+              item.append(createElement({ tag: 'span', className: 'subtle', text: new Date(c.cree_le).toLocaleDateString('fr-FR') }));
+            }
+
+            commentairesList.append(item);
+          });
+        })
+        .catch(() => {
+          commentairesList.replaceChildren(createElement({ tag: 'p', className: 'muted', text: 'Impossible de charger les commentaires.' }));
+        });
     })
     .catch((error) => {
       card.replaceChildren(createAlert({ tone: 'danger', message: error.message }));

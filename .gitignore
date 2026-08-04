@@ -7,6 +7,11 @@ frontend/node_modules/
 .env
 .env.*
 
+# Base de données SQLite
+*.sqlite
+*.sqlite3
+*.db
+
 # Logs et Système
 *.log
 .DS_Store

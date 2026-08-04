@@ -29,6 +29,8 @@ const createNavItems = () => {
   return [
     { label: 'Accueil', href: '#/', icon: 'home' },
     { label: 'Publications', href: '#/publications', icon: 'book' },
+    { label: 'Épreuves', href: '#/epreuves', icon: 'bookOpen' },
+    { label: 'Tuteur IA', href: '#/ia', icon: 'sparkle' },
     { label: 'Profil', href: '#/profil', icon: 'user' },
     { label: 'Paramètres', href: '#/parametres', icon: 'settings' }
   ];

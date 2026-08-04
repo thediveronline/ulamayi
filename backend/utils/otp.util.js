@@ -11,15 +11,18 @@ const genererOTP = () => {
 
 // Calcule la date d'expiration a partir de maintenant
 // Par defaut : le code expire dans 10 minutes
+// Retourne une chaîne ISO pour compatibilité SQLite et PostgreSQL
 const calculerExpiration = (minutes = 10) => {
     const expiration = new Date();
     expiration.setMinutes(expiration.getMinutes() + minutes);
-    return expiration;
+    return expiration.toISOString(); // Format ISO standard: "2024-08-04T15:30:00.000Z"
 };
 
 // Verifie que le code OTP n'est pas encore expire
 const estOTPValide = (expireLeDB) => {
-    return new Date() < new Date(expireLeDB);
+    const maintenant = new Date();
+    const expiration = new Date(expireLeDB);
+    return maintenant < expiration;
 };
 
 module.exports = { genererOTP, calculerExpiration, estOTPValide };

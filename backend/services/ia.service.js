@@ -1,10 +1,25 @@
-// Prototype du Module d'Intelligence Artificielle (Tuteur Virtuel)
+// Module d'Intelligence Artificielle (Tuteur Virtuel)
+// Utilise OpenRouter (API d'IA compatible OpenAI) pour generer les reponses.
+// Si OpenRouter n'est pas configure (pas de cle API), on retombe sur un mock local.
 const pool = require('../config/connexion');
+const { genererReponseIA } = require('../config/openrouter');
 
-// TODO V2 Finale : Installer un SDK officiel via npm (ex: npm install @google/genai)
-// et configurer la clé API ici :
-// const { GoogleGenAI } = require('@google/genai');
-// const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+// Prompt systeme : on guide l'IA pour qu'elle se comporte comme un tuteur pedagogique
+const PROMPT_SYSTEME = `Tu es un professeur de soutien scolaire sur la plateforme Ulamayi.
+Aide l'élève à comprendre et à progresser, sans jamais lui donner directement la réponse brute.
+Guide-le par des questions, des indices et des explications pédagogiques adaptées à son niveau.
+Réponds en français, de manière claire, bienveillante et structurée (courts paragraphes ou listes si utile).`;
+
+const genererReponseMock = (question) => {
+    const motsClesMaths = ['calcul', 'équation', 'théorème', 'x', 'addition', 'multiplication', 'algèbre', 'géométrie'];
+    const estQuestionMaths = motsClesMaths.some((mot) => question.toLowerCase().includes(mot));
+
+    if (estQuestionMaths) {
+        return "En tant que tuteur virtuel, je te conseille de revoir les priorités opératoires. N'oublie pas que la multiplication est prioritaire sur l'addition. Que trouves-tu si tu tentes d'isoler 'x' de l'autre côté du signe égal ?";
+    }
+
+    return "C'est une excellente question ! Pourrais-tu me préciser de quelle matière il s'agit et me donner le contexte de ton exercice ? Ainsi, je pourrai t'aiguiller sans te donner directement la réponse.";
+};
 
 const poserQuestion = async (eleveId, question) => {
     // Étape 1 : Validation
@@ -12,22 +27,11 @@ const poserQuestion = async (eleveId, question) => {
         throw { status: 400, message: "Ta question est trop courte, essaie de détailler un peu plus ton problème." };
     }
 
-    // Étape 2 : Prototype de réponse IA (Mock)
-    // Dans la version finale de la V2, c'est ici qu'on appelle l'API de l'IA (ex: Gemini) 
-    // en injectant un "Prompt Système" (ex: "Tu es un professeur de soutien scolaire, aide l'élève sans donner la réponse brute")
-    let reponseIa = "";
-    
-    const motsClesMaths = ['calcul', 'équation', 'théorème', 'x'];
-    const estQuestionMaths = motsClesMaths.some(mot => question.toLowerCase().includes(mot));
-
-    if (estQuestionMaths) {
-        reponseIa = "En tant que tuteur virtuel, je te conseille de revoir les priorités opératoires. N'oublie pas que la multiplication est prioritaire sur l'addition. Que trouves-tu si tu tentes d'isoler 'x' de l'autre côté du signe égal ?";
-    } else {
-        reponseIa = "C'est une excellente question ! Pourrais-tu me préciser de quelle matière il s'agit et me donner le contexte de ton exercice ? Ainsi, je pourrai t'aiguiller sans te donner directement la réponse.";
+    // Étape 2 : Génération de la réponse via OpenRouter (fallback mock si non configuré)
+    let reponseIa = await genererReponseIA({ question, systeme: PROMPT_SYSTEME });
+    if (!reponseIa) {
+        reponseIa = genererReponseMock(question);
     }
-
-    // On simule le temps de traitement typique d'une requête vers un LLM (1.5 secondes)
-    await new Promise(resolve => setTimeout(resolve, 1500));
 
     // Étape 3 : Sauvegarde de l'historique dans la base de données
     const resultat = await pool.query(
