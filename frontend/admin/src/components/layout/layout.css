@@ -38,11 +38,11 @@
 .shell__brand-mark {
   display: grid;
   place-items: center;
-  width: 32px;
-  height: 32px;
+  width: 30px;
+  height: 30px;
   border-radius: var(--radius-md);
-  background: linear-gradient(135deg, var(--color-primary), var(--color-accent));
-  color: #fff;
+  background: var(--color-primary);
+  color: var(--color-primary-contrast);
 }
 
 .shell__hamburger {
@@ -230,7 +230,7 @@
   }
 
   .shell__desktop-nav {
-    display: flex;
+    display: none;
   }
 
   .shell__footer {

@@ -13,7 +13,7 @@ const trouverParEnseignant = async (enseignant_id) => {
     const sql = `
         SELECT 
             c.*,
-            COUNT(ec.eleve_id)::INTEGER as nombre_eleves
+            COUNT(ec.eleve_id) as nombre_eleves
         FROM classes c
         LEFT JOIN eleves_classes ec ON c.id = ec.classe_id
         WHERE c.enseignant_id = $1
@@ -28,7 +28,7 @@ const trouverParId = async (id) => {
     const sql = `
         SELECT 
             c.*,
-            COUNT(ec.eleve_id)::INTEGER as nombre_eleves
+            COUNT(ec.eleve_id) as nombre_eleves
         FROM classes c
         LEFT JOIN eleves_classes ec ON c.id = ec.classe_id
         WHERE c.id = $1

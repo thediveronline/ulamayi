@@ -2,7 +2,7 @@ import { getMesClasses, listerEleves, ajouterEleve, supprimerClasse } from '../.
 import { createIcon } from '../../components/icon/icon.js';
 import { notify } from '../../components/notifications/notifications.js';
 import { createLoadingCard, createEmptyState } from '../../utils/loading.js';
-import { createField } from '../../utils/dom.js';
+import { createElement, createField } from '../../utils/dom.js';
 
 export const createClasseDetailView = (params) => {
   const page = document.createElement('section');
@@ -79,8 +79,12 @@ export const createClasseDetailView = (params) => {
 
         const elevesHeader = document.createElement('div');
         elevesHeader.className = 'row-between';
-        elevesHeader.append(createElement('h3', 'Élèves inscrits'));
+        elevesHeader.append(createElement({ tag: 'h3', text: 'Élèves inscrits' }));
         elevesCard.append(elevesHeader);
+
+        const elevesCount = document.createElement('span');
+        elevesCount.className = 'subtle';
+        elevesCard.append(elevesCount);
 
         const elevesList = document.createElement('div');
         elevesList.className = 'stack';
@@ -90,6 +94,8 @@ export const createClasseDetailView = (params) => {
         listerEleves(classe.id)
           .then((eleves) => {
             elevesList.replaceChildren();
+            const count = Array.isArray(eleves) ? eleves.length : 0;
+            elevesCount.textContent = count > 1 ? `${count} élèves` : `${count} élève`;
             if (!eleves || !eleves.length) {
               elevesList.append(
                 createEmptyState({
@@ -127,7 +133,7 @@ export const createClasseDetailView = (params) => {
           })
           .catch(() => {
             elevesList.replaceChildren();
-            elevesList.append(createElement('p', 'Erreur lors du chargement des élèves.'));
+            elevesList.append(createElement({ tag: 'p', text: 'Erreur lors du chargement des élèves.' }));
           });
 
         page.append(elevesCard);
@@ -183,25 +189,10 @@ export const createClasseDetailView = (params) => {
         page.append(addCard);
       })
       .catch((err) => {
-        page.append(createElement('div', { className: 'card', text: err.message }));
+        page.append(createElement({ tag: 'div', className: 'card', text: err.message }));
       });
   };
 
   loadDetail();
   return page;
-};
-
-const createElement = (tag, content) => {
-  if (typeof content === 'string') {
-    const el = document.createElement(tag);
-    el.textContent = content;
-    return el;
-  }
-  if (content?.className) {
-    const el = document.createElement(tag);
-    el.className = content.className;
-    if (content.text) el.textContent = content.text;
-    return el;
-  }
-  return document.createElement(tag);
 };

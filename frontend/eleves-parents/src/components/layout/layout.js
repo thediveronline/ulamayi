@@ -86,7 +86,7 @@ export const createShell = ({ title, navItems }) => {
   // Bottom nav
   const bottomNav = document.createElement('nav');
   bottomNav.className = 'shell__bottom-nav';
-  fillNav(bottomNav, navItems, 'shell__bottom-link', { withLabel: false });
+  fillNav(bottomNav, navItems, 'shell__bottom-link', { withLabel: true });
 
   // Wire hamburger / drawer
   const closeDrawer = () => drawer.classList.remove('is-open');
@@ -106,10 +106,15 @@ export const createShell = ({ title, navItems }) => {
       content.replaceChildren(node);
       window.scrollTo({ top: 0, behavior: 'instant' in window ? 'instant' : 'auto' });
     },
+    setFlush(flush) {
+      // Mode "plein écran" : supprime paddings + contrainte de largeur (vue Tchat IA)
+      main.classList.toggle('shell__main--flush', flush);
+      body.classList.toggle('shell__body--flush', flush);
+    },
     setNavItems(items) {
       fillNav(desktopNav, items, 'shell__nav-link');
       fillNav(drawerPanel, items, 'shell__sidebar-link');
-      fillNav(bottomNav, items, 'shell__bottom-link', { withLabel: false });
+      fillNav(bottomNav, items, 'shell__bottom-link', { withLabel: true });
     },
     setActiveRoute(path) {
       element.querySelectorAll('[data-path]').forEach((link) => {

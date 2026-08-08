@@ -17,7 +17,7 @@ export const createLoginView = () => {
   header.style.textAlign = 'center';
 
   const iconWrap = document.createElement('div');
-  iconWrap.style.cssText = 'display:grid;place-items:center;width:48px;height:48px;border-radius:var(--radius-lg);background:var(--color-primary-soft);color:var(--color-primary);margin:0 auto';
+  iconWrap.style.cssText = 'display:grid;place-items:center;width:48px;height:48px;border-radius:var(--radius-md);background:var(--color-primary-soft);color:var(--color-text);margin:0 auto';
   iconWrap.append(createIcon('shield', { size: 24 }));
   header.append(iconWrap);
 

@@ -3,37 +3,29 @@ import { createIcon } from '../../components/icon/icon.js';
 import { createLoadingCard } from '../../utils/loading.js';
 import { isAuthenticated, getSession } from '../../utils/session.js';
 
-const StatCard = ({ icon, label, value, color = 'primary' }) => {
-  const card = document.createElement('div');
-  card.className = 'card card-hover';
-  card.style.cssText = 'display:grid;gap:var(--space-3)';
-
-  const header = document.createElement('div');
-  header.className = 'row';
-  header.style.cssText = 'display:flex;align-items:center;gap:var(--space-3)';
+const StatTile = ({ icon, value, label }) => {
+  const tile = document.createElement('div');
+  tile.className = 'dash-tile';
 
   const iconWrap = document.createElement('div');
-  iconWrap.style.cssText = `display:grid;place-items:center;width:44px;height:44px;border-radius:var(--radius-md);background:var(--color-${color}-soft);color:var(--color-${color})`;
-  iconWrap.append(createIcon(icon, { size: 22 }));
-  header.append(iconWrap);
+  iconWrap.className = 'dash-tile__icon';
+  iconWrap.append(createIcon(icon, { size: 18 }));
 
-  const info = document.createElement('div');
-  info.style.cssText = 'display:grid;gap:2px';
+  const meta = document.createElement('div');
+  meta.className = 'dash-tile__meta';
 
-  const count = document.createElement('span');
-  count.style.cssText = 'font-size:1.75rem;font-weight:800;font-family:var(--font-display);letter-spacing:-0.03em';
-  count.textContent = value ?? '—';
-  info.append(count);
+  const val = document.createElement('span');
+  val.className = 'dash-tile__value';
+  val.textContent = value ?? '—';
+  meta.append(val);
 
   const lbl = document.createElement('span');
-  lbl.className = 'subtle';
+  lbl.className = 'dash-tile__label';
   lbl.textContent = label;
-  info.append(lbl);
+  meta.append(lbl);
 
-  header.append(info);
-  card.append(header);
-
-  return card;
+  tile.append(iconWrap, meta);
+  return tile;
 };
 
 export const createHomeView = () => {
@@ -46,8 +38,8 @@ export const createHomeView = () => {
     card.style.cssText = 'text-align:center;padding:var(--space-7) var(--space-5);max-width:560px;margin:10vh auto';
 
     const iconWrap = document.createElement('div');
-    iconWrap.style.cssText = 'display:grid;place-items:center;width:64px;height:64px;border-radius:50%;background:var(--color-primary-soft);color:var(--color-primary);margin:0 auto';
-    iconWrap.append(createIcon('shield', { size: 28 }));
+    iconWrap.style.cssText = 'display:grid;place-items:center;width:48px;height:48px;border-radius:var(--radius-md);background:var(--color-primary-soft);color:var(--color-text);margin:0 auto';
+    iconWrap.append(createIcon('shield', { size: 24 }));
     card.append(iconWrap);
 
     const title = document.createElement('h2');
@@ -90,20 +82,18 @@ export const createHomeView = () => {
   page.append(header);
 
   const statsGrid = document.createElement('div');
-  statsGrid.className = 'grid-cards';
-  statsGrid.style.gridTemplateColumns = 'repeat(auto-fill, minmax(200px, 1fr))';
+  statsGrid.className = 'dash-grid';
   page.append(statsGrid);
 
-  const loadingCard = createLoadingCard('Chargement des statistiques...');
-  statsGrid.append(loadingCard);
+  statsGrid.append(createLoadingCard('Chargement des statistiques...'));
 
   getStats()
     .then((stats) => {
       statsGrid.replaceChildren(
-        StatCard({ icon: 'users', label: 'Élèves', value: stats.total_eleves, color: 'primary' }),
-        StatCard({ icon: 'user', label: 'Enseignants', value: stats.total_enseignants, color: 'accent' }),
-        StatCard({ icon: 'users', label: 'Parents', value: stats.total_parents, color: 'info' }),
-        StatCard({ icon: 'book', label: 'Publications', value: stats.total_publications, color: 'success' })
+        StatTile({ icon: 'users', value: stats.total_eleves, label: 'Élèves' }),
+        StatTile({ icon: 'user', value: stats.total_enseignants, label: 'Enseignants' }),
+        StatTile({ icon: 'users', value: stats.total_parents, label: 'Parents' }),
+        StatTile({ icon: 'book', value: stats.total_publications, label: 'Publications' })
       );
     })
     .catch((err) => {

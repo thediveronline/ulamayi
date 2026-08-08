@@ -9,7 +9,7 @@ export const createNotFoundView = () => {
   card.style.cssText = 'text-align:center;padding:var(--space-7) var(--space-5);max-width:480px;margin:10vh auto';
 
   const iconWrap = document.createElement('div');
-  iconWrap.style.cssText = 'display:grid;place-items:center;width:64px;height:64px;border-radius:50%;background:var(--color-warning-soft);color:var(--color-warning);margin:0 auto';
+  iconWrap.style.cssText = 'display:grid;place-items:center;width:48px;height:48px;border-radius:var(--radius-md);background:var(--color-primary-soft);color:var(--color-text);margin:0 auto';
   iconWrap.append(createIcon('alert', { size: 28 }));
   card.append(iconWrap);
 

@@ -1,6 +1,8 @@
-import { getSession, clearSession } from '../../utils/session.js';
+import { getSession, clearSession, saveSession } from '../../utils/session.js';
 import { createIcon } from '../../components/icon/icon.js';
 import { notify } from '../../components/notifications/notifications.js';
+import { updateAdminProfile } from '../../services/admin.service.js';
+import { createField, createButton } from '../../utils/dom.js';
 
 export const createProfileView = () => {
   const page = document.createElement('section');
@@ -42,7 +44,7 @@ export const createProfileView = () => {
   avatarRow.className = 'row';
 
   const avatar = document.createElement('div');
-  avatar.style.cssText = 'display:grid;place-items:center;width:56px;height:56px;border-radius:50%;background:var(--color-primary-soft);color:var(--color-primary)';
+  avatar.style.cssText = 'display:grid;place-items:center;width:52px;height:52px;border-radius:var(--radius-md);background:var(--color-primary-soft);color:var(--color-text)';
   avatar.append(createIcon('user', { size: 24 }));
   avatarRow.append(avatar);
 
@@ -92,6 +94,63 @@ export const createProfileView = () => {
   card.append(idRow);
 
   page.append(card);
+
+  const editCard = document.createElement('div');
+  editCard.className = 'card stack';
+
+  const editTitle = document.createElement('h3');
+  editTitle.textContent = 'Modifier mes informations';
+  editCard.append(editTitle);
+
+  const editForm = document.createElement('form');
+  editForm.className = 'form';
+
+  const nomField = createField({ label: 'Nom', name: 'nom', value: user.nom || '', required: true });
+  const emailField = createField({ label: 'Email', name: 'email', type: 'email', value: user.email || '', required: true });
+
+  const saveBtn = createButton({ label: 'Enregistrer', type: 'submit', variant: 'primary' });
+  editForm.append(nomField.element, emailField.element, saveBtn);
+
+  const formFeedback = document.createElement('div');
+  formFeedback.className = 'stack';
+
+  editCard.append(editForm, formFeedback);
+  page.append(editCard);
+
+  editForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    formFeedback.replaceChildren();
+    saveBtn.disabled = true;
+    saveBtn.textContent = 'Enregistrement...';
+
+    const payload = {
+      nom: nomField.input.value.trim(),
+      email: emailField.input.value.trim(),
+      photo_profil: user.photo_profil || null
+    };
+
+    try {
+      const updated = await updateAdminProfile(user.id, payload);
+      const newName = updated?.nom || payload.nom;
+
+      name.textContent = newName;
+      const session = getSession();
+      if (session?.utilisateur) {
+        session.utilisateur.nom = newName;
+        session.utilisateur.email = updated?.email || payload.email;
+        saveSession(session);
+      }
+      notify({ tone: 'success', message: 'Profil mis à jour.' });
+    } catch (error) {
+      const alert = document.createElement('div');
+      alert.className = 'alert alert-danger';
+      alert.textContent = error.message;
+      formFeedback.append(alert);
+    } finally {
+      saveBtn.disabled = false;
+      saveBtn.textContent = 'Enregistrer';
+    }
+  });
 
   const actionsCard = document.createElement('div');
   actionsCard.className = 'card stack';

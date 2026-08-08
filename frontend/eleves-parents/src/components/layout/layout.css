@@ -216,3 +216,37 @@
     padding: var(--space-7) 0 var(--space-7);
   }
 }
+
+/* Mode plein écran (vue Tchat IA) : chaîne flex pleine hauteur + largeur max retirée */
+.shell__main--flush {
+  padding-top: 0;
+  padding-bottom: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.shell__body--flush {
+  width: 100%;
+  max-width: none;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.shell__main--flush .shell__content {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+/* Libellés de la bottom nav : troncature si trop long */
+.shell__bottom-link .shell__bottom-label,
+.shell__bottom-link span {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

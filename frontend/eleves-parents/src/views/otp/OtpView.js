@@ -1,8 +1,16 @@
-import { verifyOtp } from '../../services/auth.service.js';
+import { verifyOtp, renvoyerOtp } from '../../services/auth.service.js';
 import { createAlert } from '../../components/alert/alert.js';
 import { notify } from '../../components/notifications/notifications.js';
 import { createElement, createButton, createField } from '../../utils/dom.js';
 import { setLoadingState } from '../../utils/loading.js';
+
+const RESEND_COOLDOWN = 30;
+
+const setBtnLabel = (btn, label) => {
+  const node = btn.querySelector('[data-btn-label]');
+  if (node) node.textContent = label;
+  else btn.textContent = label;
+};
 
 export const createOtpView = () => {
   const page = createElement({ tag: 'section', className: 'page' });
@@ -41,7 +49,47 @@ export const createOtpView = () => {
   const submitButton = createButton({ label: 'Valider', icon: 'check', type: 'submit', variant: 'primary', block: true });
   form.append(submitButton);
 
-  wrapper.append(header, feedback, form);
+  const resendWrap = createElement({ tag: 'div', className: 'stack', attrs: { style: 'text-align: center;' } });
+  const resendBtn = createButton({ label: 'Renvoyer le code', icon: 'mail', variant: 'ghost', size: 'sm' });
+  resendWrap.append(resendBtn);
+
+  let remaining = 0;
+  let timer = null;
+  const tickResend = () => {
+    if (remaining <= 0) {
+      resendBtn.disabled = false;
+      setBtnLabel(resendBtn, 'Renvoyer le code');
+      if (timer) { clearInterval(timer); timer = null; }
+      return;
+    }
+    resendBtn.disabled = true;
+    setBtnLabel(resendBtn, `Renvoyer dans ${remaining}s`);
+    remaining -= 1;
+  };
+
+  resendBtn.addEventListener('click', async () => {
+    const mail = (form.querySelector('input[name="email"]')?.value || email).trim();
+    if (!mail) {
+      notify({ tone: 'danger', message: 'Renseigne ton adresse email pour renvoyer le code.' });
+      return;
+    }
+
+    resendBtn.disabled = true;
+    setBtnLabel(resendBtn, 'Envoi...');
+    try {
+      await renvoyerOtp({ email: mail, role });
+      notify({ tone: 'success', message: 'Un nouveau code OTP a été envoyé.' });
+      remaining = RESEND_COOLDOWN;
+      tickResend();
+      timer = setInterval(tickResend, 1000);
+    } catch (error) {
+      notify({ tone: 'danger', message: error.message });
+      resendBtn.disabled = false;
+      setBtnLabel(resendBtn, 'Renvoyer le code');
+    }
+  });
+
+  wrapper.append(header, feedback, form, resendWrap);
   page.append(wrapper);
 
   form.addEventListener('submit', async (event) => {

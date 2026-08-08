@@ -39,3 +39,10 @@ Statistiques :
 Validation des tuteurs :
 - Route : PATCH /api/adin/enseignants/:id/valider
 - Pour qu'un admin puisse valider officiellement le profil d'un enseignant.
+
+## Notes / Décisions
+
+### Modèles sans API (réservés pour plus tard)
+- `abonnement` et `correction` ont des tables en base (créées par les migrations) et des fichiers modèle,
+  mais ne sont pas encore exposés par de routes ou services. Décision : on les **conserve** (structure DB existante),
+  on ne créera l'API que lorsqu'une feature le requiert. Pas de suppression pour l'instant.

@@ -7,7 +7,7 @@ set -e
 # Le repertoire du backend peut etre passe en argument :
 #   ./set_vps.sh /root/opt/ulamayi/backend
 APP_DIR="${1:-/root/opt/ulamayi/backend}"
-APP_PORT="3000"
+APP_PORT="4000"
 DOMAIN="api.ulamayi.online"   
 if [ ! -d "$APP_DIR" ]; then
     echo "[ERREUR] Le repertoire '$APP_DIR' n'existe pas."

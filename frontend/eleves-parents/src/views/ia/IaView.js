@@ -4,128 +4,179 @@ import { notify } from '../../components/notifications/notifications.js';
 import { createLoadingCard, createEmptyState } from '../../utils/loading.js';
 import { createElement, createButton } from '../../utils/dom.js';
 
-const appendMessage = (container, content, isUser) => {
-  const msg = createElement({ tag: 'div', className: `chat__msg ${isUser ? 'chat__msg--user' : 'chat__msg--ai'}`, text: content });
-  container.append(msg);
-  container.scrollTop = container.scrollHeight;
+const WELCOME =
+  'Bonjour ! Je suis le tuteur Ulamayi. Posez-moi une question sur un de vos cours : je peux ' +
+  'expliquer une notion, vous aider sur un exercice ou préparer une révision.';
+
+const bubble = (content, isUser) =>
+  createElement({ tag: 'div', className: `chat__msg ${isUser ? 'chat__msg--user' : 'chat__msg--ai'}`, text: content });
+
+const messageRow = (content, isUser) => {
+  const row = createElement({ tag: 'div', className: `chat__row ${isUser ? 'chat__row--user' : 'chat__row--ai'}` });
+  row.append(bubble(content, isUser));
+  return row;
 };
 
-const buildHistItem = (item) => {
-  const itemEl = createElement({ tag: 'div', className: 'hist-item' });
-
-  const head = createElement({ tag: 'button', className: 'hist-item__head', attrs: { type: 'button' } });
-  head.append(createIcon('messageSquare', { size: 16 }));
-  head.append(createElement({ tag: 'span', className: 'hist-item__q', text: item.question }));
-
-  const chevron = createElement({ tag: 'span', className: 'hist-item__chevron' });
-  chevron.append(createIcon('chevronRight', { size: 16 }));
-  head.append(chevron);
-
-  const body = createElement({ tag: 'div', className: 'hist-item__body' });
-  const chat = createElement({ tag: 'div', className: 'chat' });
-  chat.append(
-    createElement({ tag: 'div', className: 'chat__msg chat__msg--user', text: item.question }),
-    createElement({ tag: 'div', className: 'chat__msg chat__msg--ai', text: item.reponse })
-  );
-  body.append(chat);
-  if (item.cree_le) {
-    body.append(createElement({ tag: 'span', className: 'subtle', text: new Date(item.cree_le).toLocaleDateString('fr-FR') }));
-  }
-
-  head.addEventListener('click', () => {
-    itemEl.classList.toggle('is-open');
-  });
-
-  itemEl.append(head, body);
-  return itemEl;
-};
+const blankBubble = (isUser) =>
+  createElement({ tag: 'div', className: `chat__msg ${isUser ? 'chat__msg--user' : 'chat__msg--ai'}` });
 
 export const createIaView = () => {
-  const page = createElement({ tag: 'section', className: 'page' });
+  const screen = createElement({ tag: 'section', className: 'ia-chat-screen' });
 
-  const header = createElement({ tag: 'div', className: 'page-header' });
-  const titleWrap = createElement({ tag: 'div', className: 'stack', attrs: { style: 'gap: 0.25rem;' } });
-  titleWrap.append(
-    createElement({ tag: 'h1', className: 'page-title', text: 'Tuteur IA' }),
-    createElement({ tag: 'p', className: 'page-subtitle', text: 'Posez vos questions et obtenez des réponses instantanées.' })
-  );
-  header.append(titleWrap);
-  page.append(header);
+  // Barre du tchat (compacte, sans texte descriptif)
+  const bar = createElement({ tag: 'div', className: 'ia-chat-bar' });
 
-  const chatCard = createElement({ tag: 'div', className: 'stack' });
+  const avatar = createElement({ tag: 'div', className: 'ia-chat-bar__avatar' });
+  avatar.append(createIcon('sparkle', { size: 18 }));
 
-  const messagesContainer = createElement({ tag: 'div', className: 'chat', attrs: { style: 'max-height: 55vh; overflow-y: auto; padding: var(--space-3) 0;' } });
-  appendMessage(messagesContainer, 'Bonjour ! Je suis votre tuteur virtuel. Posez-moi une question sur vos cours.', false);
+  const barInfo = createElement({ tag: 'div', className: 'stack', attrs: { style: 'gap: 0;' } });
+  barInfo.append(createElement({ tag: 'span', className: 'ia-chat-bar__title', text: 'Tuteur Ulamayi' }));
+  const status = createElement({ tag: 'span', className: 'ia-chat-bar__status' });
+  status.append(createElement({ tag: 'span', className: 'ia-dot' }));
+  status.append(document.createTextNode('En ligne'));
+  barInfo.append(status);
 
-  chatCard.append(messagesContainer);
+  const barActions = createElement({ tag: 'div', className: 'ia-chat-bar__actions' });
+  const histBtn = createButton({ label: 'Historique', icon: 'messageSquare', variant: 'secondary', size: 'sm' });
+  barActions.append(histBtn);
 
-  const form = createElement({ tag: 'form', className: 'row', attrs: { style: 'display: flex; gap: var(--space-3);' } });
+  bar.append(avatar, barInfo, barActions);
+  screen.append(bar);
 
-  const input = createElement({ tag: 'input', className: 'input', attrs: { type: 'text', placeholder: 'Posez votre question...', required: '' } });
-  input.style.flex = '1';
+  // Zone des messages (scrollable en interne)
+  const scroll = createElement({ tag: 'div', className: 'ia-chat__scroll' });
+  const welcomeRow = createElement({ tag: 'div', className: 'chat__row chat__row--ai' });
+  welcomeRow.append(bubble(WELCOME, false));
+  scroll.append(welcomeRow);
+  screen.append(scroll);
+
+  // Zone de saisie (fixe, au-dessus de la bottom nav)
+  const composerWrap = createElement({ tag: 'div', className: 'ia-composer-wrap' });
+
+  const form = createElement({ tag: 'form', className: 'ia-composer' });
+  const input = document.createElement('textarea');
+  input.className = 'ia-input';
+  input.rows = 1;
+  input.placeholder = 'Posez votre question...';
+  input.setAttribute('required', '');
   form.append(input);
 
-  const submitBtn = createButton({ label: 'Demander', icon: 'sparkle', variant: 'primary' });
-  submitBtn.type = 'submit';
-  form.append(submitBtn);
+  const sendBtn = createButton({ label: 'Envoyer', icon: 'sparkle', variant: 'primary' });
+  sendBtn.type = 'submit';
+  form.append(sendBtn);
 
-  chatCard.append(form);
-  page.append(chatCard);
+  composerWrap.append(form);
+  screen.append(composerWrap);
 
-  page.append(createElement({ tag: 'hr', className: 'divider' }));
+  // Panneau historique (overlay)
+  const histPanel = createElement({ tag: 'div', className: 'ia-history-panel' });
+  const histHead = createElement({ tag: 'div', className: 'ia-history-panel__head' });
+  histHead.append(createElement({ tag: 'span', className: 'ia-history-panel__title', text: 'Historique' }));
+  const closeBtn = createButton({ label: 'Fermer', icon: 'x', variant: 'ghost', size: 'sm' });
+  histHead.append(closeBtn);
+  histPanel.append(histHead);
 
-  const historiqueCard = createElement({ tag: 'div', className: 'stack' });
-  historiqueCard.append(createElement({ tag: 'h3', text: 'Historique' }));
+  const histList = createElement({ tag: 'div', className: 'ia-history-panel__list' });
+  histPanel.append(histList);
+  screen.append(histPanel);
 
-  const histContainer = createElement({ tag: 'div', className: 'stack' });
-  histContainer.append(createLoadingCard('Chargement de l\'historique...'));
-  historiqueCard.append(histContainer);
+  // --- Comportement ---
 
-  getHistorique()
-    .then((historique) => {
-      histContainer.replaceChildren();
-      if (!historique || !historique.length) {
-        histContainer.append(
-          createEmptyState({
-            icon: 'book',
-            title: 'Aucune question',
-            description: 'Vous n\'avez pas encore posé de question.'
-          })
-        );
-        return;
-      }
+  const autoGrow = () => {
+    input.style.height = 'auto';
+    input.style.height = `${Math.min(input.scrollHeight, 120)}px`;
+  };
+  input.addEventListener('input', autoGrow);
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      form.requestSubmit();
+    }
+  });
 
-      historique.forEach((item) => histContainer.append(buildHistItem(item)));
-    })
-    .catch(() => {
-      histContainer.replaceChildren();
-    });
+  const scrollToBottom = () => {
+    scroll.scrollTop = scroll.scrollHeight;
+  };
 
-  page.append(historiqueCard);
+  const openPanel = () => histPanel.classList.add('is-open');
+  const closePanel = () => histPanel.classList.remove('is-open');
+
+  histBtn.addEventListener('click', openPanel);
+  closeBtn.addEventListener('click', closePanel);
+
+  const loadChatEntry = (question, reponse) => {
+    scroll.append(messageRow(question, true));
+    scroll.append(messageRow(reponse, false));
+    closePanel();
+    scrollToBottom();
+  };
+
+  const loadHistory = () => {
+    histList.replaceChildren(createLoadingCard('Chargement de l\'historique...'));
+    getHistorique()
+      .then((historique) => {
+        histList.replaceChildren();
+        if (!historique || !historique.length) {
+          histList.append(
+            createEmptyState({
+              icon: 'messageSquare',
+              title: 'Aucune question',
+              description: 'Vous n\'avez pas encore posé de question au tuteur.',
+              action: undefined
+            })
+          );
+          return;
+        }
+        historique.forEach((item) => {
+          const row = createElement({ tag: 'button', className: 'ia-history-item', attrs: { type: 'button' } });
+          row.append(createElement({ tag: 'span', className: 'ia-history-item__q', text: item.question }));
+          if (item.cree_le) {
+            row.append(createElement({ tag: 'span', className: 'ia-history-item__date', text: new Date(item.cree_le).toLocaleDateString('fr-FR') }));
+          }
+          row.addEventListener('click', () => loadChatEntry(item.question, item.reponse));
+          histList.append(row);
+        });
+      })
+      .catch(() => {
+        histList.replaceChildren(createElement({ tag: 'p', className: 'muted', text: 'Impossible de charger l\'historique.' }));
+      });
+  };
 
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
     const question = input.value.trim();
     if (!question) return;
 
-    appendMessage(messagesContainer, question, true);
+    scroll.append(messageRow(question, true));
     input.value = '';
-    submitBtn.disabled = true;
-    submitBtn.textContent = 'Réflexion...';
+    autoGrow();
+    sendBtn.disabled = true;
+    scrollToBottom();
+
+    const aiRow = createElement({ tag: 'div', className: 'chat__row chat__row--ai' });
+    const aiBubble = blankBubble(false);
+    const typing = createElement({ tag: 'span', className: 'typing' });
+    typing.append(createElement({ tag: 'span' }), createElement({ tag: 'span' }), createElement({ tag: 'span' }));
+    aiBubble.append(typing);
+    aiRow.append(aiBubble);
+    scroll.append(aiRow);
+    scrollToBottom();
 
     try {
       const result = await poserQuestion(question);
       const reponse = result?.donnees?.reponse || result?.message || 'Je n\'ai pas pu traiter votre question.';
-      appendMessage(messagesContainer, reponse, false);
+      aiBubble.replaceChildren();
+      aiBubble.textContent = reponse;
     } catch (err) {
-      appendMessage(messagesContainer, `Erreur : ${err.message}`, false);
+      aiBubble.replaceChildren();
+      aiBubble.textContent = `Erreur : ${err.message}`;
     } finally {
-      submitBtn.disabled = false;
-      submitBtn.replaceChildren();
-      submitBtn.append(createIcon('sparkle', { size: 18 }));
-      submitBtn.append(createElement({ tag: 'span', text: 'Demander' }));
+      sendBtn.disabled = false;
+      scrollToBottom();
     }
   });
 
-  return page;
+  loadHistory();
+
+  return screen;
 };

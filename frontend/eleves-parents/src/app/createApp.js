@@ -73,6 +73,7 @@ export const createApp = (mountNode) => {
     const currentRoute = resolveRouteAccess(route);
     shell.setNavItems(createNavItems());
     shell.setContent(currentRoute.render(context));
+    shell.setFlush(currentRoute.path === '/ia');
     shell.setActiveRoute(currentRoute.path);
   });
 

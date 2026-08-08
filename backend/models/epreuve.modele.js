@@ -13,7 +13,7 @@ const trouverParId = async (id) => {
     const sql = `
         SELECT 
             e.*,
-            COUNT(c.id)::INTEGER AS nombre_corrections
+            COUNT(c.id) AS nombre_corrections
         FROM epreuves e
         LEFT JOIN corrections c ON c.epreuve_id = e.id
         WHERE e.id = $1
@@ -27,7 +27,7 @@ const trouverToutes = async () => {
     const sql = `
         SELECT 
             e.*,
-            COUNT(c.id)::INTEGER AS nombre_corrections
+            COUNT(c.id) AS nombre_corrections
         FROM epreuves e
         LEFT JOIN corrections c ON c.epreuve_id = e.id
         GROUP BY e.id
@@ -42,7 +42,7 @@ const trouverParEleve = async (eleve_id) => {
     const sql = `
         SELECT 
             e.*,
-            COUNT(c.id)::INTEGER AS nombre_corrections
+            COUNT(c.id) AS nombre_corrections
         FROM epreuves e
         LEFT JOIN corrections c ON c.epreuve_id = e.id
         WHERE e.eleve_id = $1
