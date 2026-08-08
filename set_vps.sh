@@ -87,7 +87,7 @@ echo "Nginx configure pour proxy vers Node sur le port $APP_PORT"
 
 # 5. Activer HTTPS avec Certbot (Automatique)
 echo "Activation de HTTPS pour $DOMAIN..."
-certbot --nginx -d $DOMAIN --non-interactive --agree-tos --email thediveronline@gmail.com --redirect || echo "[ATTENTION] Certbot n'a pas pu activer HTTPS. Verifiez vos DNS."
+certbot --nginx -d $DOMAIN --non-interactive --agree-tos --email ulamayi237@gmail.com --redirect || echo "[ATTENTION] Certbot n'a pas pu activer HTTPS. Verifiez vos DNS."
 
 # 6. Commandes utiles
 echo ""
