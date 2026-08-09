@@ -1,3 +1,6 @@
+const path = require('path');
+require('dotenv').config({ path: path.join(__dirname, '../.env') });
+
 const pool = require('../config/connexion');
 
 async function patchLogoUrl() {
@@ -9,7 +12,7 @@ async function patchLogoUrl() {
         console.log('✅ Base de données mise à jour avec succès !');
         process.exit(0);
     } catch (err) {
-        console.error('❌ Erreur lors de la mise à jour de la BD:', err.message);
+        console.error('❌ Erreur lors de la mise à jour de la BD:', err.message || err);
         process.exit(1);
     }
 }
