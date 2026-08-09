@@ -1,6 +1,7 @@
-// sscript de migration pour cree toutes les tables dans la base de donnees
+// Script de migration pour créer toutes les tables dans la base de données
 
-require('dotenv').config();
+const path = require('path');
+require('dotenv').config({ path: path.join(__dirname, '../.env') });
 const pool = require('../config/connexion');
 
 const creerTables = async () => {
