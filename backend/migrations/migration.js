@@ -139,10 +139,11 @@ const creerTables = async () => {
                 id SERIAL PRIMARY KEY,
                 email VARCHAR(150) NOT NULL,
                 code VARCHAR(6) NOT NULL,
-                expire_le TIMESTAMP NOT NULL,
+                expire_le TIMESTAMPTZ NOT NULL,
                 cree_le TIMESTAMP DEFAULT NOW()
             )
         `);
+        await client.query('ALTER TABLE otps ALTER COLUMN expire_le TYPE TIMESTAMPTZ USING expire_le AT TIME ZONE \'UTC\'');
 
         // --- Nouvelles tables pour la feature Épreuves & Corrections ---
         await client.query(`
