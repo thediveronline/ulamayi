@@ -1,24 +1,25 @@
 // Modèle pour la gestion des classes, de la relation élèves-classes et du chat de classe
 const pool = require('../config/connexion');
 
-const creer = async ({ nom, niveau_scolaire, enseignant_id, description, prix, planning }) => {
+const creer = async ({ nom, niveau_scolaire, enseignant_id, description, prix, planning, logo_url }) => {
     const resultat = await pool.query(
-        'INSERT INTO classes (nom, niveau_scolaire, enseignant_id, description, prix, planning) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *',
-        [nom, niveau_scolaire, enseignant_id, description || null, prix || 0, planning || null]
+        'INSERT INTO classes (nom, niveau_scolaire, enseignant_id, description, prix, planning, logo_url) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *',
+        [nom, niveau_scolaire, enseignant_id, description || null, prix || 0, planning || null, logo_url || null]
     );
     return resultat.rows[0];
 };
 
-const modifier = async (id, { nom, niveau_scolaire, description, prix, planning }) => {
+const modifier = async (id, { nom, niveau_scolaire, description, prix, planning, logo_url }) => {
     const resultat = await pool.query(
         `UPDATE classes 
          SET nom = COALESCE($1, nom),
              niveau_scolaire = COALESCE($2, niveau_scolaire),
              description = COALESCE($3, description),
              prix = COALESCE($4, prix),
-             planning = COALESCE($5, planning)
-         WHERE id = $6 RETURNING *`,
-        [nom, niveau_scolaire, description, prix, planning, id]
+             planning = COALESCE($5, planning),
+             logo_url = COALESCE($6, logo_url)
+         WHERE id = $7 RETURNING *`,
+        [nom, niveau_scolaire, description, prix, planning, logo_url, id]
     );
     return resultat.rows[0];
 };

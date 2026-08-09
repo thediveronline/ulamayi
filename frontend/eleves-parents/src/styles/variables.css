@@ -1,72 +1,116 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Manrope:wght@500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Manrope:wght@600;700&display=swap');
 
 :root {
   --font-sans: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-  --font-display: 'Manrope', 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-display: 'Manrope', 'Inter', system-ui, sans-serif;
 
-  --color-bg: #f7f8fa;
+  /* Surfaces */
+  --color-bg: #f5f6fa;
   --color-surface: #ffffff;
-  --color-surface-muted: #f1f2f4;
-  --color-surface-hover: #eceef1;
+  --color-surface-muted: #f0f2f7;
+  --color-surface-hover: #e8eaf2;
 
-  --color-primary: #1a1a2e;
-  --color-primary-soft: rgba(26, 26, 46, 0.06);
+  /* Couleur principale : bleu marine Ulamayi */
+  --color-primary: #1e2d6b;
+  --color-primary-strong: #141f4e;
+  --color-primary-soft: rgba(30, 45, 107, 0.07);
   --color-primary-contrast: #ffffff;
 
-  --color-text: #1a1a2e;
-  --color-text-muted: #5b6472;
-  --color-text-subtle: #9aa1ab;
+  /* Accent : bleu vif pour les actions importantes */
+  --color-accent: #3b6ef5;
+  --color-accent-strong: #2a5ae0;
+  --color-accent-soft: rgba(59, 110, 245, 0.10);
+  --color-accent-contrast: #ffffff;
 
-  --color-border: #e6e8eb;
-  --color-border-strong: #d0d4da;
+  /* Texte */
+  --color-text: #1a1f36;
+  --color-text-muted: #4e5a7a;
+  --color-text-subtle: #8b94b0;
 
-  --color-success: #2b8a3e;
-  --color-success-soft: rgba(43, 138, 62, 0.08);
-  --color-danger: #c92a2a;
-  --color-danger-soft: rgba(201, 42, 42, 0.08);
+  /* Bordures */
+  --color-border: #e2e5ef;
+  --color-border-strong: #c9cedf;
 
-  --radius-sm: 4px;
-  --radius-md: 6px;
-  --radius-lg: 10px;
+  /* Statuts */
+  --color-success: #1e8a4a;
+  --color-success-soft: rgba(30, 138, 74, 0.08);
+  --color-danger: #c0392b;
+  --color-danger-soft: rgba(192, 57, 43, 0.08);
+  --color-warning: #b45309;
+  --color-warning-soft: rgba(180, 83, 9, 0.08);
+  --color-info: #0369a1;
+  --color-info-soft: rgba(3, 105, 161, 0.08);
+
+  /* Rayons */
+  --radius-xs: 3px;
+  --radius-sm: 5px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
   --radius-full: 999px;
 
+  /* Ombres */
+  --shadow-xs: 0 1px 2px rgba(30,45,107,0.05);
+  --shadow-sm: 0 2px 6px rgba(30,45,107,0.06);
+  --shadow-md: 0 4px 16px rgba(30,45,107,0.10);
+  --shadow-lg: 0 8px 32px rgba(30,45,107,0.14);
+
+  /* Espacements */
   --space-1: 0.25rem;
   --space-2: 0.5rem;
   --space-3: 0.75rem;
   --space-4: 1rem;
   --space-5: 1.5rem;
   --space-6: 2rem;
-  --space-7: 3rem;
+  --space-7: 2.5rem;
+  --space-8: 3.5rem;
 
+  /* Layout */
   --layout-width: 1080px;
-  --header-height: 72px;
-  --bottom-nav-height: 56px;
+  --header-height: 60px;
+  --bottom-nav-height: 60px;
 
-  --transition-fast: 150ms ease;
-  --transition-base: 250ms ease;
+  /* Transitions */
+  --transition-fast: 140ms ease;
+  --transition-base: 220ms ease;
 }
 
+/* Mode sombre */
 :root[data-theme='dark'] {
   color-scheme: dark;
 
-  --color-bg: #12141a;
-  --color-surface: #1a1d24;
-  --color-surface-muted: #23262e;
-  --color-surface-hover: #2a2e38;
+  --color-bg: #0f1220;
+  --color-surface: #171c2e;
+  --color-surface-muted: #1f2538;
+  --color-surface-hover: #272e45;
 
-  --color-primary: #f2f3f5;
-  --color-primary-soft: rgba(242, 243, 245, 0.08);
-  --color-primary-contrast: #12141a;
+  --color-primary: #aab8f5;
+  --color-primary-strong: #c4ceff;
+  --color-primary-soft: rgba(170, 184, 245, 0.10);
+  --color-primary-contrast: #0f1220;
 
-  --color-text: #eef0f3;
-  --color-text-muted: #aab1bd;
-  --color-text-subtle: #6f7683;
+  --color-accent: #5c87ff;
+  --color-accent-strong: #7499ff;
+  --color-accent-soft: rgba(92, 135, 255, 0.13);
+  --color-accent-contrast: #0f1220;
 
-  --color-border: #2a2e38;
-  --color-border-strong: #3a3f4b;
+  --color-text: #edf0fa;
+  --color-text-muted: #9daac5;
+  --color-text-subtle: #5e6d8f;
 
-  --color-success: #57b46b;
-  --color-success-soft: rgba(87, 180, 107, 0.12);
+  --color-border: #252d45;
+  --color-border-strong: #323c5e;
+
+  --color-success: #4caf72;
+  --color-success-soft: rgba(76, 175, 114, 0.12);
   --color-danger: #e06060;
   --color-danger-soft: rgba(224, 96, 96, 0.12);
+  --color-warning: #d4a030;
+  --color-warning-soft: rgba(212, 160, 48, 0.12);
+  --color-info: #52a8d4;
+  --color-info-soft: rgba(82, 168, 212, 0.12);
+
+  --shadow-sm: 0 2px 8px rgba(0,0,0,0.25);
+  --shadow-md: 0 4px 18px rgba(0,0,0,0.35);
+  --shadow-lg: 0 8px 36px rgba(0,0,0,0.45);
 }

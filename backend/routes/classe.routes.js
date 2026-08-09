@@ -4,6 +4,9 @@ const classeService = require('../services/classe.service');
 const { verifierAuthentification } = require('../middlewares/authentification.middleware');
 const { autoriser } = require('../middlewares/role.middleware');
 const { uploadMedia } = require('../middlewares/upload.middleware');
+const multer = require('multer');
+const { uploaderBuffer } = require('../config/cloudinary');
+const uploadLogo = multer({ storage: multer.memoryStorage(), limits: { fileSize: 3 * 1024 * 1024 } });
 
 router.use(verifierAuthentification);
 
@@ -37,10 +40,16 @@ router.get('/mes-classes-eleve', autoriser('eleve'), async (req, res) => {
     }
 });
 
-// POST /api/classes - Créer une nouvelle classe (Enseignant)
-router.post('/', autoriser('enseignant'), async (req, res) => {
+// POST /api/classes - Créer une nouvelle classe (Enseignant) — avec logo optionnel
+router.post('/', autoriser('enseignant'), uploadLogo.single('logo'), async (req, res) => {
     try {
-        const nouvelleClasse = await classeService.creerClasse(req.body, req.utilisateur.id);
+        let logo_url = undefined;
+        if (req.file) {
+            const result = await uploaderBuffer(req.file.buffer, { folder: 'ulamayi/classes/logos' });
+            logo_url = result.secure_url;
+        }
+        const donnees = { ...req.body, ...(logo_url !== undefined && { logo_url }) };
+        const nouvelleClasse = await classeService.creerClasse(donnees, req.utilisateur.id);
         res.status(201).json({ message: 'Classe créée avec succès.', classe: nouvelleClasse });
     } catch (erreur) {
         res.status(erreur.status || 500).json({ message: erreur.message, details: erreur.details });
@@ -61,14 +70,20 @@ router.get('/:id', async (req, res) => {
     }
 });
 
-// PUT /api/classes/:id - Modifier les paramètres d'une classe (planning, prix, description)
-router.put('/:id', autoriser('enseignant', 'admin'), async (req, res) => {
+// PUT /api/classes/:id - Modifier les paramètres d'une classe — avec logo optionnel
+router.put('/:id', autoriser('enseignant', 'admin'), uploadLogo.single('logo'), async (req, res) => {
     try {
         const id = parseInt(req.params.id, 10);
         if (!id || Number.isNaN(id)) {
             return res.status(400).json({ message: 'Identifiant de classe invalide.' });
         }
-        const classe = await classeService.modifierClasse(id, req.body, req.utilisateur.id, req.utilisateur.role);
+        let logo_url = undefined;
+        if (req.file) {
+            const result = await uploaderBuffer(req.file.buffer, { folder: 'ulamayi/classes/logos' });
+            logo_url = result.secure_url;
+        }
+        const donnees = { ...req.body, ...(logo_url !== undefined && { logo_url }) };
+        const classe = await classeService.modifierClasse(id, donnees, req.utilisateur.id, req.utilisateur.role);
         res.status(200).json({ message: 'Classe mise à jour avec succès.', classe });
     } catch (erreur) {
         res.status(erreur.status || 500).json({ message: erreur.message });
