@@ -1,6 +1,6 @@
 const classeModele = require('../models/classe.modele');
 const Joi = require('joi');
-const { uploaderMedia } = require('../utils/cloudinary.util');
+const { uploaderBuffer } = require('../config/cloudinary');
 
 const schemaCreationClasse = Joi.object({
     nom: Joi.string().min(2).max(100).required().messages({
@@ -132,9 +132,9 @@ const envoyerMessage = async (classeId, utilisateur, contenu, fichier) => {
     let media_public_id = null;
 
     if (fichier) {
-        const resultUpload = await uploaderMedia(fichier.buffer, fichier.mimetype);
+        const resultUpload = await uploaderBuffer(fichier.buffer, { folder: 'ulamayi/classes' });
         media_url = resultUpload.secure_url;
-        media_type = resultUpload.media_type;
+        media_type = resultUpload.resource_type;
         media_public_id = resultUpload.public_id;
     }
 
