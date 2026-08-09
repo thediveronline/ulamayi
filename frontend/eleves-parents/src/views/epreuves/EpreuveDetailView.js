@@ -6,13 +6,14 @@ import { createElement } from '../../utils/dom.js';
 import { getSession } from '../../utils/session.js';
 import { urlAffichageImage } from '../../utils/media.js';
 
-export const createEpreuveDetailView = (params) => {
+export const createEpreuveDetailView = (context = {}) => {
   const page = createElement({ tag: 'section', className: 'page' });
 
   const loadingCard = createLoadingCard('Chargement de l\'épreuve...');
   page.append(loadingCard);
 
-  const epreuveId = parseInt(params?.id, 10);
+  const rawId = context?.params?.id || context?.id;
+  const epreuveId = parseInt(rawId, 10);
   if (!epreuveId || Number.isNaN(epreuveId)) {
     page.replaceChildren();
     page.append(createElement({ tag: 'div', className: 'alert alert-danger', text: 'Identifiant d\'épreuve invalide ou non spécifié.' }));
