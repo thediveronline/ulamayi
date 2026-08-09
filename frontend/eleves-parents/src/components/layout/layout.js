@@ -39,7 +39,7 @@ export const createShell = ({ title, navItems }) => {
   const brand = document.createElement('a');
   const brandMark = document.createElement('img');
   brandMark.className = 'shell__brand-logo';
-  brandMark.src = '/logo_ulamayi.png';
+  brandMark.src = '/logo_ulamayi_bg.png';
   brandMark.alt = 'Ulamayi';
   brandMark.style.cssText = 'height: 58px; width: auto; object-fit: contain; display: block;';
 
