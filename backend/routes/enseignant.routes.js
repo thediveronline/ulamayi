@@ -2,10 +2,13 @@ const { Router } = require('express');
 const serviceEnseignant = require('../services/enseignant.service');
 const { verifierAuthentification } = require('../middlewares/authentification.middleware');
 const { autoriser } = require('../middlewares/role.middleware');
+const multer = require('multer');
+const { uploaderBuffer } = require('../config/cloudinary');
 
 const routeur = Router();
+const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 5 * 1024 * 1024 } });
 
-// Routes publiques (Annuaire et Profil Public)
+// Routes publiques — annuaire et profil public (pas d'auth requise)
 routeur.get('/', async (req, res) => {
     try {
         const enseignants = await serviceEnseignant.listerTousEnseignants();
@@ -40,9 +43,26 @@ routeur.get('/profil', autoriser('enseignant'), async (req, res) => {
     }
 });
 
-routeur.put('/profil', autoriser('enseignant'), async (req, res) => {
+// PUT /profil — avec upload photo optionnel
+routeur.put('/profil', autoriser('enseignant'), upload.single('photo'), async (req, res) => {
     try {
-        const profil = await serviceEnseignant.mettreAJourProfil(req.utilisateur.id, req.body);
+        let photo_profil = undefined;
+
+        if (req.file) {
+            const result = await uploaderBuffer(req.file.buffer, { folder: 'ulamayi/enseignants' });
+            photo_profil = result.secure_url;
+        }
+
+        const donnees = {
+            nom: req.body.nom,
+            prenom: req.body.prenom,
+            matiere: req.body.matiere,
+            titre: req.body.titre,
+            numero_telephone: req.body.numero_telephone,
+            ...(photo_profil !== undefined && { photo_profil })
+        };
+
+        const profil = await serviceEnseignant.mettreAJourProfil(req.utilisateur.id, donnees);
         res.status(200).json(profil);
     } catch (erreur) {
         res.status(400).json({ message: erreur.message });

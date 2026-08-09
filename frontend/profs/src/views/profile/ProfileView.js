@@ -1,4 +1,5 @@
-import { getMyProfile, updateMyProfile } from '../../services/teacher.service.js';
+import { getMyProfile } from '../../services/teacher.service.js';
+import { apiRequest } from '../../services/api.js';
 import { createAlert } from '../../components/alert/alert.js';
 import { notify } from '../../components/notifications/notifications.js';
 import { createElement, createButton, createField } from '../../utils/dom.js';
@@ -7,36 +8,18 @@ import { createIcon } from '../../components/icon/icon.js';
 
 const formatDate = (iso) => {
   if (!iso) return '-';
-  try {
-    return new Date(iso).toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' });
-  } catch {
-    return iso;
-  }
-};
-
-const renderInfoRow = (icon, label, value) => {
-  const row = createElement({ tag: 'div', className: 'row', attrs: { style: 'gap: 0.75rem;' } });
-  const iconWrap = createElement({ tag: 'div', className: 'empty-state-icon', attrs: { style: 'width:36px;height:36px;' } });
-  iconWrap.append(createIcon(icon, { size: 16 }));
-
-  const text = createElement({ tag: 'div', className: 'stack', attrs: { style: 'gap: 0;' } });
-  text.append(
-    createElement({ tag: 'span', className: 'subtle', text: label }),
-    createElement({ tag: 'strong', text: value || '-' })
-  );
-
-  row.append(iconWrap, text);
-  return row;
+  try { return new Date(iso).toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' }); }
+  catch { return iso; }
 };
 
 export const createProfileView = () => {
   const page = createElement({ tag: 'section', className: 'page' });
 
   const header = createElement({ tag: 'div', className: 'page-header' });
-  const headerLeft = createElement({ tag: 'div', className: 'stack', attrs: { style: 'gap: 0.25rem;' } });
+  const headerLeft = createElement({ tag: 'div', className: 'stack', attrs: { style: 'gap:0.25rem;' } });
   headerLeft.append(
     createElement({ tag: 'h1', className: 'page-title', text: 'Mon profil' }),
-    createElement({ tag: 'p', className: 'page-subtitle', text: 'Gère les informations de ton compte enseignant.' })
+    createElement({ tag: 'p', className: 'page-subtitle', text: 'Gérez vos informations personnelles et professionnelles.' })
   );
   header.append(headerLeft);
   page.append(header);
@@ -44,19 +27,54 @@ export const createProfileView = () => {
   const feedback = createElement({ tag: 'div', className: 'stack' });
   page.append(feedback);
 
+  // --- Carte résumé ---
   const summaryCard = createElement({ tag: 'div', className: 'card stack' });
   summaryCard.append(createLoadingCard('Chargement du profil...'));
   page.append(summaryCard);
 
+  // --- Formulaire de modification ---
   const formCard = createElement({ tag: 'div', className: 'card stack' });
   formCard.append(createElement({ tag: 'h2', text: 'Modifier mes informations' }));
 
   const form = createElement({ tag: 'form', className: 'form' });
-  form.append(
-    createField({ name: 'nom', label: 'Nom', required: true }),
-    createField({ name: 'prenom', label: 'Prénom', required: true }),
-    createField({ name: 'matiere', label: 'Matière enseignée', placeholder: 'Mathématiques, Français...' })
-  );
+
+  // Photo de profil
+  const photoWrap = createElement({ tag: 'div', className: 'profil-photo-wrap' });
+  const photoPreview = createElement({ tag: 'div', className: 'profil-photo-preview' });
+  photoPreview.append(createIcon('user', { size: 32 }));
+
+  const photoLabel = document.createElement('label');
+  photoLabel.className = 'profil-photo-label';
+  photoLabel.append(createIcon('edit', { size: 14 }));
+  photoLabel.append(document.createTextNode(' Changer la photo'));
+  const photoInput = document.createElement('input');
+  photoInput.type = 'file';
+  photoInput.accept = 'image/*';
+  photoInput.hidden = true;
+  photoLabel.append(photoInput);
+
+  photoInput.addEventListener('change', () => {
+    if (photoInput.files[0]) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        photoPreview.replaceChildren();
+        const img = document.createElement('img');
+        img.src = e.target.result;
+        photoPreview.append(img);
+      };
+      reader.readAsDataURL(photoInput.files[0]);
+    }
+  });
+
+  photoWrap.append(photoPreview, photoLabel);
+  form.append(photoWrap);
+
+  // Champs
+  form.append(createField({ name: 'prenom', label: 'Prénom', required: true }));
+  form.append(createField({ name: 'nom', label: 'Nom', required: true }));
+  form.append(createField({ name: 'matiere', label: 'Matière(s) enseignée(s)', placeholder: 'Ex: Mathématiques, Physique' }));
+  form.append(createField({ name: 'titre', label: 'Titre / Institution', placeholder: 'Ex: Étudiant à l\'ENS de Yaoundé, Dr, Prof...' }));
+  form.append(createField({ name: 'numero_telephone', label: 'Téléphone', type: 'tel', placeholder: '+237 6XX XXX XXX' }));
 
   const submitButton = createButton({ label: 'Enregistrer', icon: 'save', type: 'submit', variant: 'primary' });
   const actions = createElement({ tag: 'div', className: 'row' });
@@ -66,70 +84,93 @@ export const createProfileView = () => {
   formCard.append(form);
   page.append(formCard);
 
+  // --- Rendu de la carte résumé ---
   const renderSummary = (profile) => {
     summaryCard.replaceChildren();
 
-    const top = createElement({ tag: 'div', className: 'row-between' });
-    const identity = createElement({ tag: 'div', className: 'row' });
+    const top = createElement({ tag: 'div', className: 'teacher-profil' });
 
-    const avatar = createElement({ tag: 'div', className: 'empty-state-icon', attrs: { style: 'width: 56px; height: 56px;' } });
-    avatar.append(createIcon('user', { size: 26 }));
-
-    const info = createElement({ tag: 'div', className: 'stack', attrs: { style: 'gap: 0.125rem;' } });
-    info.append(
-      createElement({ tag: 'h2', text: `${profile.prenom || ''} ${profile.nom || ''}`.trim() || 'Enseignant' }),
-      createElement({ tag: 'span', className: 'subtle', text: profile.email || '-' })
-    );
-
-    identity.append(avatar, info);
-    top.append(identity);
-
-    const badge = createElement({ tag: 'span', className: 'badge badge-primary', text: 'Enseignant' });
-    top.append(badge);
-
-    const grid = createElement({ tag: 'div', className: 'grid-cards' });
-    grid.append(renderInfoRow('mail', 'Email', profile.email));
-    grid.append(renderInfoRow('book', 'Matière', profile.matiere));
-    grid.append(renderInfoRow('calendar', 'Membre depuis', formatDate(profile.cree_le)));
-    if (typeof profile.est_verifie === 'boolean') {
-      grid.append(renderInfoRow('shield', 'Compte', profile.est_verifie ? 'Vérifié' : 'Non vérifié'));
+    const avatar = createElement({ tag: 'div', className: 'teacher-profil__avatar' });
+    if (profile.photo_profil) {
+      const img = document.createElement('img');
+      img.src = profile.photo_profil;
+      img.alt = '';
+      avatar.append(img);
+    } else {
+      avatar.append(createIcon('user', { size: 32 }));
     }
 
-    summaryCard.append(top, createElement({ tag: 'hr', className: 'divider' }), grid);
+    const info = createElement({ tag: 'div', className: 'teacher-profil__info' });
+    const nom = [profile.titre, profile.prenom, profile.nom].filter(Boolean).join(' ');
+    info.append(createElement({ tag: 'h2', text: nom || 'Enseignant' }));
+
+    if (profile.matiere) {
+      info.append(createElement({ tag: 'span', className: 'badge badge-primary', text: profile.matiere }));
+    }
+
+    if (profile.numero_telephone) {
+      const tel = createElement({ tag: 'a', className: 'teacher-profil__contact', attrs: { href: `tel:${profile.numero_telephone}` } });
+      tel.append(createIcon('phone', { size: 13 }));
+      tel.append(document.createTextNode(` ${profile.numero_telephone}`));
+      info.append(tel);
+    }
+
+    const meta = createElement({ tag: 'div', className: 'subtle', attrs: { style: 'font-size:0.8rem;' } });
+    meta.textContent = `Membre depuis ${formatDate(profile.cree_le)}`;
+    info.append(meta);
+
+    top.append(avatar, info);
+    summaryCard.append(top);
+
+    // Remettre l'aperçu photo
+    const currentImg = photoPreview.querySelector('img');
+    if (!currentImg && profile.photo_profil) {
+      photoPreview.replaceChildren();
+      const img = document.createElement('img');
+      img.src = profile.photo_profil;
+      photoPreview.append(img);
+    }
   };
 
   const fillForm = (profile) => {
-    form.elements.nom.value = profile.nom || '';
-    form.elements.prenom.value = profile.prenom || '';
+    if (form.elements.nom) form.elements.nom.value = profile.nom || '';
+    if (form.elements.prenom) form.elements.prenom.value = profile.prenom || '';
     if (form.elements.matiere) form.elements.matiere.value = profile.matiere || '';
+    if (form.elements.titre) form.elements.titre.value = profile.titre || '';
+    if (form.elements.numero_telephone) form.elements.numero_telephone.value = profile.numero_telephone || '';
   };
 
   getMyProfile()
-    .then((profile) => {
-      renderSummary(profile);
-      fillForm(profile);
-    })
-    .catch((error) => {
-      summaryCard.replaceChildren(createAlert({ tone: 'danger', message: error.message }));
-      notify({ tone: 'danger', message: error.message });
+    .then((profile) => { renderSummary(profile); fillForm(profile); })
+    .catch((err) => {
+      summaryCard.replaceChildren(createAlert({ tone: 'danger', message: err.message }));
+      notify({ tone: 'danger', message: err.message });
     });
 
-  form.addEventListener('submit', async (event) => {
-    event.preventDefault();
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
     feedback.replaceChildren();
     setLoadingState({ button: submitButton, isLoading: true, idleLabel: 'Enregistrer' });
 
-    const payload = Object.fromEntries(new FormData(form).entries());
-
     try {
-      const updated = await updateMyProfile(payload);
+      const formData = new FormData();
+      formData.append('nom', form.elements.nom?.value || '');
+      formData.append('prenom', form.elements.prenom?.value || '');
+      formData.append('matiere', form.elements.matiere?.value || '');
+      formData.append('titre', form.elements.titre?.value || '');
+      formData.append('numero_telephone', form.elements.numero_telephone?.value || '');
+      if (photoInput.files[0]) {
+        formData.append('photo', photoInput.files[0]);
+      }
+
+      const updated = await apiRequest('/enseignants/profil', { method: 'PUT', body: formData });
       renderSummary(updated);
       fillForm(updated);
-      feedback.append(createAlert({ tone: 'success', message: 'Profil mis à jour.' }));
+      feedback.append(createAlert({ tone: 'success', message: 'Profil mis à jour avec succès.' }));
       notify({ tone: 'success', message: 'Profil mis à jour.' });
-    } catch (error) {
-      feedback.append(createAlert({ tone: 'danger', message: error.message }));
-      notify({ tone: 'danger', message: error.message });
+    } catch (err) {
+      feedback.append(createAlert({ tone: 'danger', message: err.message }));
+      notify({ tone: 'danger', message: err.message });
     } finally {
       setLoadingState({ button: submitButton, isLoading: false, idleLabel: 'Enregistrer' });
     }
