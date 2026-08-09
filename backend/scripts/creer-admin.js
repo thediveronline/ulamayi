@@ -29,7 +29,7 @@ async function tout() {
             console.log(`✅ Administrateur créé avec succès ! ID: ${res.rows[0].id}, Email: ${res.rows[0].email}`);
         }
     } catch (err) {
-        console.error('❌ Erreur lors de la création de l\'administrateur :', err.message);
+        console.error('❌ Erreur lors de la création de l\'administrateur :', err.message || err);
     } finally {
         process.exit(0);
     }
