@@ -8,7 +8,7 @@ const createNavLink = (item, className, { withLabel = true } = {}) => {
   link.dataset.path = item.href.replace(/^#/, '');
 
   if (item.icon) {
-    link.append(createIcon(item.icon, { size: 18 }));
+    link.append(createIcon(item.icon, { size: 20 }));
   }
 
   if (withLabel) {
@@ -42,7 +42,7 @@ export const createShell = ({ title, navItems }) => {
 
   const brandMark = document.createElement('span');
   brandMark.className = 'shell__brand-mark';
-  brandMark.append(createIcon('graduation', { size: 18 }));
+  brandMark.append(createIcon('graduation', { size: 16 }));
 
   const brandText = document.createElement('span');
   brandText.textContent = title;
@@ -69,14 +69,10 @@ export const createShell = ({ title, navItems }) => {
   const body = document.createElement('div');
   body.className = 'shell__body';
 
-  const sidebar = document.createElement('aside');
-  sidebar.className = 'shell__sidebar';
-  fillNav(sidebar, navItems, 'shell__sidebar-link');
-
   const content = document.createElement('section');
   content.className = 'shell__content';
 
-  body.append(sidebar, content);
+  body.append(content);
   main.append(body);
 
   // Mobile drawer
@@ -90,22 +86,7 @@ export const createShell = ({ title, navItems }) => {
   // Bottom nav
   const bottomNav = document.createElement('nav');
   bottomNav.className = 'shell__bottom-nav';
-  fillNav(bottomNav, navItems, 'shell__bottom-link');
-
-  // Footer
-  const footer = document.createElement('footer');
-  footer.className = 'shell__footer';
-  const footerInner = document.createElement('div');
-  footerInner.className = 'shell__footer-inner';
-
-  const copyright = document.createElement('span');
-  copyright.textContent = `© ${new Date().getFullYear()} Ulamayi · Plateforme éducative`;
-
-  const tagline = document.createElement('span');
-  tagline.textContent = 'Espace élèves & parents';
-
-  footerInner.append(copyright, tagline);
-  footer.append(footerInner);
+  fillNav(bottomNav, navItems, 'shell__bottom-link', { withLabel: true });
 
   // Wire hamburger / drawer
   const closeDrawer = () => drawer.classList.remove('is-open');
@@ -117,7 +98,7 @@ export const createShell = ({ title, navItems }) => {
     if (event.target.closest('.shell__sidebar-link')) closeDrawer();
   });
 
-  element.append(header, main, drawer, bottomNav, footer);
+  element.append(header, main, drawer, bottomNav);
 
   return {
     element,
@@ -125,11 +106,15 @@ export const createShell = ({ title, navItems }) => {
       content.replaceChildren(node);
       window.scrollTo({ top: 0, behavior: 'instant' in window ? 'instant' : 'auto' });
     },
+    setFlush(flush) {
+      // Mode "plein écran" : supprime paddings + contrainte de largeur (vue Tchat IA)
+      main.classList.toggle('shell__main--flush', flush);
+      body.classList.toggle('shell__body--flush', flush);
+    },
     setNavItems(items) {
       fillNav(desktopNav, items, 'shell__nav-link');
-      fillNav(sidebar, items, 'shell__sidebar-link');
       fillNav(drawerPanel, items, 'shell__sidebar-link');
-      fillNav(bottomNav, items, 'shell__bottom-link');
+      fillNav(bottomNav, items, 'shell__bottom-link', { withLabel: true });
     },
     setActiveRoute(path) {
       element.querySelectorAll('[data-path]').forEach((link) => {

@@ -1,0 +1,6 @@
+{
+  "command": "npm run dev --prefix frontend/eleves-parents",
+  "url": "http://localhost:5173",
+  "hotReload": true,
+  "disableInspect": false
+}

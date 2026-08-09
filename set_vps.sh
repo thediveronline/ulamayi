@@ -7,9 +7,8 @@ set -e
 # Le repertoire du backend peut etre passe en argument :
 #   ./set_vps.sh /root/opt/ulamayi/backend
 APP_DIR="${1:-/root/opt/ulamayi/backend}"
-APP_PORT="3000"
-DOMAIN="api.ulamayi.shop"   # remplace par ton domaine
-
+APP_PORT="4000"
+DOMAIN="api.ulamayi.online"   
 if [ ! -d "$APP_DIR" ]; then
     echo "[ERREUR] Le repertoire '$APP_DIR' n'existe pas."
     echo "Usage : $0 [CHEMIN_DU_BACKEND]"
@@ -88,7 +87,7 @@ echo "Nginx configure pour proxy vers Node sur le port $APP_PORT"
 
 # 5. Activer HTTPS avec Certbot (Automatique)
 echo "Activation de HTTPS pour $DOMAIN..."
-certbot --nginx -d $DOMAIN --non-interactive --agree-tos --email thediveronline@gmail.com --redirect || echo "[ATTENTION] Certbot n'a pas pu activer HTTPS. Verifiez vos DNS."
+certbot --nginx -d $DOMAIN --non-interactive --agree-tos --email ulamayi237@gmail.com --redirect || echo "[ATTENTION] Certbot n'a pas pu activer HTTPS. Verifiez vos DNS."
 
 # 6. Commandes utiles
 echo ""

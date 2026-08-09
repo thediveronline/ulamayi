@@ -11,6 +11,11 @@ export const verifyOtp = (payload) => apiRequest('/auth/verification-otp', {
   body: JSON.stringify(payload)
 });
 
+export const renvoyerOtp = (payload) => apiRequest('/auth/renvoyer-otp', {
+  method: 'POST',
+  body: JSON.stringify(payload)
+});
+
 export const loginUser = async (payload) => {
   const result = await apiRequest('/auth/connexion', {
     method: 'POST',

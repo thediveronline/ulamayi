@@ -63,7 +63,7 @@ const renderHeroGuest = (page) => {
   const inner = createElement({ tag: 'div', className: 'stack' });
 
   inner.append(
-    createElement({ tag: 'span', className: 'badge badge-accent', text: 'Plateforme éducative' }),
+    createElement({ tag: 'span', className: 'badge badge-primary', text: 'Plateforme éducative' }),
     createElement({ tag: 'h1', className: 'page-title', text: 'Espace enseignants Ulamayi' }),
     createElement({ tag: 'p', className: 'page-subtitle', text: 'Connecte-toi pour publier tes épreuves et exercices à destination des élèves.' })
   );
@@ -78,11 +78,38 @@ const renderHeroGuest = (page) => {
   page.append(hero);
 };
 
+const StatTile = ({ icon, value, label, hint = '', onClick }) => {
+  const tile = createElement({ tag: onClick ? 'a' : 'div', className: 'dash-tile', attrs: onClick ? { href: '#' } : {} });
+  if (onClick) {
+    tile.addEventListener('click', (e) => {
+      e.preventDefault();
+      onClick();
+    });
+  }
+
+  const iconWrap = createElement({ tag: 'div', className: 'dash-tile__icon' });
+  iconWrap.append(createIcon(icon, { size: 18 }));
+
+  const meta = createElement({ tag: 'div', className: 'dash-tile__meta' });
+  meta.append(createElement({ tag: 'span', className: 'dash-tile__value', text: value }));
+  meta.append(createElement({ tag: 'span', className: 'dash-tile__label', text: label }));
+  if (hint) {
+    const hintEl = createElement({ tag: 'span', className: 'dash-tile__hint', text: hint });
+    hintEl.style.overflow = 'hidden';
+    hintEl.style.textOverflow = 'ellipsis';
+    hintEl.style.whiteSpace = 'nowrap';
+    meta.append(hintEl);
+  }
+
+  tile.append(iconWrap, meta);
+  return tile;
+};
+
 const renderStats = (page) => {
   const section = createElement({ tag: 'section', className: 'stack' });
   section.append(createElement({ tag: 'h2', text: 'Aperçu' }));
 
-  const grid = createElement({ tag: 'div', className: 'grid-cards' });
+  const grid = createElement({ tag: 'div', className: 'dash-grid' });
   grid.append(createLoadingCard('Chargement de tes publications...'));
   section.append(grid);
   page.append(section);
@@ -91,42 +118,33 @@ const renderStats = (page) => {
     .then((items) => {
       grid.replaceChildren();
       const list = Array.isArray(items) ? items : [];
-
       const total = list.length;
       const last = list[0];
 
-      const totalCard = createElement({ tag: 'article', className: 'card stack' });
-      const totalIcon = createElement({ tag: 'div', className: 'empty-state-icon' });
-      totalIcon.append(createIcon('book', { size: 22 }));
-      totalCard.append(
-        totalIcon,
-        createElement({ tag: 'h3', text: String(total) }),
-        createElement({ tag: 'p', className: 'muted', text: total > 1 ? 'publications créées' : 'publication créée' })
-      );
-      grid.append(totalCard);
+      grid.append(StatTile({
+        icon: 'book',
+        value: String(total),
+        label: total > 1 ? 'publications créées' : 'publication créée',
+        onClick: () => { window.location.hash = '/publications'; }
+      }));
 
-      const lastCard = createElement({ tag: 'article', className: 'card stack' });
-      const lastIcon = createElement({ tag: 'div', className: 'empty-state-icon' });
-      lastIcon.append(createIcon('calendar', { size: 22 }));
-      lastCard.append(
-        lastIcon,
-        createElement({ tag: 'h3', text: last?.titre ? last.titre : 'Aucune publication' }),
-        createElement({ tag: 'p', className: 'muted', text: last?.cree_le ? `Dernière publication le ${formatDate(last.cree_le)}` : 'Crée ta première publication.' })
-      );
-      grid.append(lastCard);
+      const lastLabel = total > 0
+        ? `Dernière publication le ${formatDate(last?.cree_le)}`
+        : 'Aucune publication';
+      grid.append(StatTile({
+        icon: 'calendar',
+        value: formatDate(last?.cree_le) || '—',
+        label: lastLabel,
+        hint: last?.titre,
+        onClick: () => { window.location.hash = '/publications'; }
+      }));
 
-      const ctaCard = createElement({ tag: 'article', className: 'card stack' });
-      const ctaIcon = createElement({ tag: 'div', className: 'empty-state-icon' });
-      ctaIcon.append(createIcon('plus', { size: 22 }));
-      ctaCard.append(
-        ctaIcon,
-        createElement({ tag: 'h3', text: 'Nouvelle publication' }),
-        createElement({ tag: 'p', className: 'muted', text: 'Rédige une nouvelle épreuve ou un exercice.' })
-      );
-      const ctaBtn = createButton({ label: 'Créer', icon: 'plus', variant: 'primary', size: 'sm' });
-      ctaBtn.addEventListener('click', () => { window.location.hash = '/publications/nouvelle'; });
-      ctaCard.append(ctaBtn);
-      grid.append(ctaCard);
+      grid.append(StatTile({
+        icon: 'plus',
+        value: 'Créer',
+        label: 'Nouvelle publication',
+        onClick: () => { window.location.hash = '/publications/nouvelle'; }
+      }));
     })
     .catch((error) => {
       grid.replaceChildren(createAlert({ tone: 'danger', message: error.message }));
@@ -141,12 +159,11 @@ const renderFeatures = (page) => {
 
   FEATURES.forEach((feature) => {
     const card = createElement({ tag: 'article', className: 'card stack' });
-
-    const iconWrapper = createElement({ tag: 'div', className: 'empty-state-icon' });
-    iconWrapper.append(createIcon(feature.icon, { size: 24 }));
+    const iconWrap = createElement({ tag: 'div', className: 'dash-tile__icon' });
+    iconWrap.append(createIcon(feature.icon, { size: 18 }));
 
     card.append(
-      iconWrapper,
+      iconWrap,
       createElement({ tag: 'h3', text: feature.title }),
       createElement({ tag: 'p', className: 'muted', text: feature.text })
     );

@@ -6,7 +6,7 @@ import { notify } from '../../components/notifications/notifications.js';
 import { isDarkTheme, toggleTheme } from '../../utils/theme.js';
 
 const renderRow = ({ icon, title, description, action }) => {
-  const row = createElement({ tag: 'div', className: 'row-between card card-compact settings-row' });
+  const row = createElement({ tag: 'div', className: 'row settings-row', attrs: { style: 'padding: var(--space-3) 0;' } });
 
   const left = createElement({ tag: 'div', className: 'row' });
   const iconWrap = createElement({ tag: 'div', className: 'empty-state-icon', attrs: { style: 'width: 40px; height: 40px;' } });
@@ -44,7 +44,7 @@ export const createSettingsView = () => {
   page.append(header);
 
   // Account info
-  const accountCard = createElement({ tag: 'div', className: 'card stack' });
+  const accountCard = createElement({ tag: 'div', className: 'stack' });
   accountCard.append(createElement({ tag: 'h2', text: 'Compte' }));
 
   const accountList = createElement({ tag: 'div', className: 'stack' });
@@ -69,8 +69,10 @@ export const createSettingsView = () => {
   accountCard.append(accountList);
   page.append(accountCard);
 
+  page.append(createElement({ tag: 'hr', className: 'divider' }));
+
   // Security (placeholder, backend ne supporte pas encore le changement de mot de passe)
-  const securityCard = createElement({ tag: 'div', className: 'card stack' });
+  const securityCard = createElement({ tag: 'div', className: 'stack' });
   securityCard.append(createElement({ tag: 'h2', text: 'Sécurité' }));
 
   securityCard.append(renderRow({
@@ -81,7 +83,9 @@ export const createSettingsView = () => {
 
   page.append(securityCard);
 
-  const appearanceCard = createElement({ tag: 'div', className: 'card stack' });
+  page.append(createElement({ tag: 'hr', className: 'divider' }));
+
+  const appearanceCard = createElement({ tag: 'div', className: 'stack' });
   appearanceCard.append(createElement({ tag: 'h2', text: 'Apparence' }));
 
   const toggleLabel = createElement({ tag: 'span', className: 'subtle', text: darkModeEnabled ? 'Mode sombre activé' : 'Mode clair activé' });
@@ -123,8 +127,10 @@ export const createSettingsView = () => {
 
   page.append(appearanceCard);
 
-  // Danger zone
-  const dangerCard = createElement({ tag: 'div', className: 'card stack' });
+  page.append(createElement({ tag: 'hr', className: 'divider' }));
+
+  // Session
+  const dangerCard = createElement({ tag: 'div', className: 'stack' });
   dangerCard.append(createElement({ tag: 'h2', text: 'Session' }));
 
   const logoutBtn = createButton({ label: 'Se déconnecter', icon: 'logout', variant: 'danger' });

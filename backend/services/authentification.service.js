@@ -65,8 +65,20 @@ const verifierOTP = async ({ email, code, role }) => {
 
     const otpEnBase = await modeleOTP.trouverParEmail(email);
     if (!otpEnBase) throw new Error('Aucun code OTP trouve pour cet email.');
+    
+    console.log('[DEBUG OTP] Code en base:', otpEnBase.code, '| Code reçu:', code);
     if (otpEnBase.code !== code) throw new Error('Code OTP incorrect.');
-    if (!estOTPValide(otpEnBase.expire_le)) throw new Error('Code OTP expire. Veuillez recommencer.');
+    
+    // Debug des dates
+    const maintenant = new Date();
+    const expiration = new Date(otpEnBase.expire_le);
+    console.log('[DEBUG OTP] Maintenant:', maintenant.toISOString());
+    console.log('[DEBUG OTP] Expiration:', expiration.toISOString());
+    console.log('[DEBUG OTP] Est valide?', maintenant < expiration);
+    
+    if (!estOTPValide(otpEnBase.expire_le)) {
+        throw new Error(`Code OTP expire. Veuillez recommencer. (Expiré le: ${expiration.toLocaleString()})`);
+    }
 
     await modele.activerCompte(email);
     await modeleOTP.supprimerParEmail(email);
