@@ -1,198 +1,307 @@
-import { getMesClasses, listerEleves, ajouterEleve, supprimerClasse } from '../../services/classe.service.js';
+import {
+  getClasseById, updateClasse, listerEleves, ajouterEleve, supprimerClasse,
+  getMessages, getMediasClasse, envoyerMessage
+} from '../../services/classe.service.js';
 import { createIcon } from '../../components/icon/icon.js';
 import { notify } from '../../components/notifications/notifications.js';
 import { createLoadingCard, createEmptyState } from '../../utils/loading.js';
-import { createElement, createField } from '../../utils/dom.js';
+import { createElement, createField, createButton } from '../../utils/dom.js';
 
-export const createClasseDetailView = (params) => {
-  const page = document.createElement('section');
-  page.className = 'page';
+const POLL = 5000;
 
-  const backLink = document.createElement('a');
-  backLink.className = 'btn btn-ghost';
-  backLink.href = '#/classes';
-  backLink.append(createIcon('chevronLeft', { size: 18 }));
-  backLink.append(' Retour aux classes');
-  page.append(backLink);
+const formatHeure = (iso) => {
+  try { return new Date(iso).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }); } catch { return ''; }
+};
 
-  const loadingCard = createLoadingCard('Chargement de la classe...');
-  page.append(loadingCard);
+const buildBubble = (msg, moi) => {
+  const wrap = createElement({ tag: 'div', className: `chat__row ${moi ? 'chat__row--user' : 'chat__row--ai'}` });
+  const bubble = createElement({ tag: 'div', className: `chat__msg ${moi ? 'chat__msg--user' : 'chat__msg--ai'}` });
+  if (!moi) bubble.append(createElement({ tag: 'span', className: 'chat__sender', text: msg.nom_expediteur || '' }));
+  if (msg.media_url) {
+    if (msg.media_type === 'pdf') {
+      const link = createElement({ tag: 'a', className: 'chat__media-link', text: 'Voir le document', attrs: { href: msg.media_url, target: '_blank', rel: 'noopener' } });
+      link.prepend(createIcon('fileText', { size: 14 }));
+      bubble.append(link);
+    } else {
+      const img = document.createElement('img');
+      img.src = msg.media_url; img.className = 'chat__media-img'; img.alt = 'Média'; img.loading = 'lazy';
+      bubble.append(img);
+    }
+  }
+  if (msg.contenu) bubble.append(createElement({ tag: 'span', text: msg.contenu }));
+  bubble.append(createElement({ tag: 'span', className: 'chat__time', text: formatHeure(msg.cree_le) }));
+  wrap.append(bubble);
+  return wrap;
+};
 
-  const classeId = params?.id;
+export const createClasseDetailView = (context = {}) => {
+  const classeId = parseInt(context?.params?.id, 10);
+  const page = createElement({ tag: 'section', className: 'ia-chat-screen classe-chat' });
 
-  const loadDetail = () => {
-    page.replaceChildren();
-    page.append(backLink);
+  if (!classeId || Number.isNaN(classeId)) {
+    page.append(createElement({ tag: 'p', className: 'muted', text: 'Classe introuvable.' }));
+    return page;
+  }
 
-    getMesClasses()
-      .then((classes) => {
-        const classe = classes.find((c) => String(c.id) === String(classeId));
-        if (!classe) {
-          page.append(createEmptyState({
-            icon: 'graduation',
-            title: 'Classe introuvable',
-            description: 'Cette classe n\'existe pas ou a été supprimée.'
-          }));
-          return;
-        }
+  let lastMsgCount = 0;
+  let pollTimer = null;
+  let classeData = null;
 
-        const header = document.createElement('div');
-        header.className = 'page-header';
+  // --- ONGLETS : Chat | Membres | Paramètres | Médias ---
+  const bar = createElement({ tag: 'div', className: 'ia-chat-bar' });
+  const backBtn = createButton({ icon: 'chevronLeft', variant: 'ghost', size: 'sm' });
+  backBtn.addEventListener('click', () => { window.location.hash = '/classes'; });
+  bar.append(backBtn);
 
-        const titleWrap = document.createElement('div');
-        titleWrap.className = 'stack';
-        const title = document.createElement('h1');
-        title.className = 'page-title';
-        title.textContent = classe.nom || 'Classe';
-        titleWrap.append(title);
+  const barInfo = createElement({ tag: 'div', className: 'stack', attrs: { style: 'gap:0; flex:1;' } });
+  const barTitle = createElement({ tag: 'span', className: 'ia-chat-bar__title', text: 'Chargement...' });
+  const barSub = createElement({ tag: 'span', className: 'ia-chat-bar__status' });
+  barInfo.append(barTitle, barSub);
+  bar.append(barInfo);
 
-        if (classe.niveau_scolaire) {
-          const niveau = document.createElement('span');
-          niveau.className = 'badge badge-primary';
-          niveau.textContent = classe.niveau_scolaire;
-          titleWrap.append(niveau);
-        }
+  // Boutons d'onglets dans la barre
+  const tabMediaBtn = createButton({ icon: 'image', variant: 'ghost', size: 'sm' });
+  const tabMembersBtn = createButton({ icon: 'users', variant: 'ghost', size: 'sm' });
+  const tabSettingsBtn = createButton({ icon: 'settings', variant: 'ghost', size: 'sm' });
+  bar.append(tabMediaBtn, tabMembersBtn, tabSettingsBtn);
+  page.append(bar);
 
-        header.append(titleWrap);
+  // --- Zone messages (zone principale) ---
+  const scroll = createElement({ tag: 'div', className: 'ia-chat__scroll' });
+  scroll.append(createLoadingCard('Chargement...'));
+  page.append(scroll);
 
-        const deleteBtn = document.createElement('button');
-        deleteBtn.type = 'button';
-        deleteBtn.className = 'btn btn-danger';
-        deleteBtn.append(createIcon('trash', { size: 18 }));
-        deleteBtn.append(' Supprimer');
-        deleteBtn.addEventListener('click', async () => {
-          if (!window.confirm(`Supprimer la classe "${classe.nom}" ?`)) return;
-          try {
-            await supprimerClasse(classe.id);
-            notify({ tone: 'success', message: 'Classe supprimée.' });
-            window.location.hash = '#/classes';
-          } catch (err) {
-            notify({ tone: 'danger', message: err.message });
-          }
-        });
-        header.append(deleteBtn);
-
-        page.append(header);
-
-        const elevesCard = document.createElement('div');
-        elevesCard.className = 'card stack';
-
-        const elevesHeader = document.createElement('div');
-        elevesHeader.className = 'row-between';
-        elevesHeader.append(createElement({ tag: 'h3', text: 'Élèves inscrits' }));
-        elevesCard.append(elevesHeader);
-
-        const elevesCount = document.createElement('span');
-        elevesCount.className = 'subtle';
-        elevesCard.append(elevesCount);
-
-        const elevesList = document.createElement('div');
-        elevesList.className = 'stack';
-        elevesList.append(createLoadingCard('Chargement des élèves...'));
-        elevesCard.append(elevesList);
-
-        listerEleves(classe.id)
-          .then((eleves) => {
-            elevesList.replaceChildren();
-            const count = Array.isArray(eleves) ? eleves.length : 0;
-            elevesCount.textContent = count > 1 ? `${count} élèves` : `${count} élève`;
-            if (!eleves || !eleves.length) {
-              elevesList.append(
-                createEmptyState({
-                  icon: 'users',
-                  title: 'Aucun élève',
-                  description: 'Aucun élève inscrit dans cette classe.'
-                })
-              );
-              return;
-            }
-
-            eleves.forEach((eleve) => {
-              const row = document.createElement('div');
-              row.className = 'row-between';
-              row.style.cssText = 'padding:var(--space-3) 0;border-bottom:1px solid var(--color-border)';
-
-              const info = document.createElement('div');
-              info.className = 'stack';
-              info.style.gap = '2px';
-
-              const name = document.createElement('strong');
-              name.textContent = `${eleve.prenom || ''} ${eleve.nom || ''}`.trim() || 'Élève';
-              info.append(name);
-
-              if (eleve.email) {
-                const email = document.createElement('span');
-                email.className = 'subtle';
-                email.textContent = eleve.email;
-                info.append(email);
-              }
-
-              row.append(info);
-              elevesList.append(row);
-            });
-          })
-          .catch(() => {
-            elevesList.replaceChildren();
-            elevesList.append(createElement({ tag: 'p', text: 'Erreur lors du chargement des élèves.' }));
-          });
-
-        page.append(elevesCard);
-
-        const addCard = document.createElement('div');
-        addCard.className = 'card stack';
-
-        const addTitle = document.createElement('h3');
-        addTitle.textContent = 'Ajouter un élève';
-        addCard.append(addTitle);
-
-        const addForm = document.createElement('form');
-        addForm.className = 'row';
-        addForm.style.cssText = 'display:flex;gap:var(--space-3)';
-
-        const eleveIdField = createField({
-          label: 'ID de l\'élève',
-          name: 'eleve_id',
-          type: 'number',
-          placeholder: 'Entrez l\'ID de l\'élève',
-          required: true
-        });
-        eleveIdField.style.flex = '1';
-        addForm.append(eleveIdField);
-        const eleveIdInput = eleveIdField.querySelector('input');
-
-        const addBtn = document.createElement('button');
-        addBtn.type = 'submit';
-        addBtn.className = 'btn btn-primary';
-        addBtn.append(createIcon('plus', { size: 18 }));
-        addBtn.append(' Ajouter');
-        addForm.append(addBtn);
-
-        addForm.addEventListener('submit', async (e) => {
-          e.preventDefault();
-          const eleveId = parseInt(eleveIdInput.value, 10);
-          if (!eleveId) return;
-
-          addBtn.disabled = true;
-          try {
-            await ajouterEleve(classe.id, eleveId);
-            notify({ tone: 'success', message: 'Élève ajouté à la classe.' });
-            eleveIdInput.value = '';
-            loadDetail();
-          } catch (err) {
-            notify({ tone: 'danger', message: err.message });
-          } finally {
-            addBtn.disabled = false;
-          }
-        });
-
-        addCard.append(addForm);
-        page.append(addCard);
-      })
-      .catch((err) => {
-        page.append(createElement({ tag: 'div', className: 'card', text: err.message }));
-      });
+  // --- PANNEAU MÉDIAS ---
+  const makePanel = (title) => {
+    const panel = createElement({ tag: 'div', className: 'ia-history-panel' });
+    const head = createElement({ tag: 'div', className: 'ia-history-panel__head' });
+    head.append(createElement({ tag: 'span', className: 'ia-history-panel__title', text: title }));
+    const closeBtn = createButton({ icon: 'x', variant: 'ghost', size: 'sm' });
+    closeBtn.addEventListener('click', () => panel.classList.remove('is-open'));
+    head.append(closeBtn);
+    panel.append(head);
+    const body = createElement({ tag: 'div', className: 'ia-history-panel__list' });
+    panel.append(body);
+    page.append(panel);
+    return { panel, body };
   };
 
-  loadDetail();
+  const { panel: mediaPanel, body: mediaList } = makePanel('Fichiers partagés');
+  const { panel: membersPanel, body: membersList } = makePanel('Membres');
+  const { panel: settingsPanel, body: settingsBody } = makePanel('Paramètres de la classe');
+
+  tabMediaBtn.addEventListener('click', () => {
+    mediaPanel.classList.toggle('is-open');
+    membersPanel.classList.remove('is-open');
+    settingsPanel.classList.remove('is-open');
+    getMediasClasse(classeId).then(items => {
+      mediaList.replaceChildren();
+      if (!items.length) { mediaList.append(createElement({ tag: 'p', className: 'muted', text: 'Aucun fichier.' })); return; }
+      items.forEach(item => {
+        const row = createElement({ tag: 'a', className: 'ia-history-item', attrs: { href: item.media_url, target: '_blank', rel: 'noopener' } });
+        row.append(item.media_type === 'pdf' ? createIcon('fileText', { size: 16 }) : createIcon('image', { size: 16 }));
+        row.append(createElement({ tag: 'span', text: item.nom_expediteur || 'Fichier' }));
+        mediaList.append(row);
+      });
+    }).catch(() => {});
+  });
+
+  tabMembersBtn.addEventListener('click', () => {
+    membersPanel.classList.toggle('is-open');
+    mediaPanel.classList.remove('is-open');
+    settingsPanel.classList.remove('is-open');
+    listerEleves(classeId).then(eleves => {
+      membersList.replaceChildren();
+      if (!eleves.length) { membersList.append(createElement({ tag: 'p', className: 'muted', text: 'Aucun élève.' })); return; }
+      eleves.forEach(e => {
+        const row = createElement({ tag: 'div', className: 'ia-history-item' });
+        const nom = `${e.prenom || ''} ${e.nom || ''}`.trim();
+        row.append(createIcon('user', { size: 14 }));
+        row.append(createElement({ tag: 'span', text: nom }));
+        membersList.append(row);
+      });
+    }).catch(() => {});
+  });
+
+  tabSettingsBtn.addEventListener('click', () => {
+    settingsPanel.classList.toggle('is-open');
+    mediaPanel.classList.remove('is-open');
+    membersPanel.classList.remove('is-open');
+    if (!classeData) return;
+    settingsBody.replaceChildren();
+
+    const form = createElement({ tag: 'form', className: 'stack' });
+
+    const nomField = createField({ label: 'Nom de la classe', name: 'nom', value: classeData.nom || '', required: true });
+    const niveauField = createField({ label: 'Niveau scolaire', name: 'niveau_scolaire', value: classeData.niveau_scolaire || '' });
+    const descField = createField({ label: 'Description', name: 'description', type: 'textarea', value: classeData.description || '' });
+    const prixField = createField({ label: 'Prix d\'accès (0 = Gratuit)', name: 'prix', type: 'number', value: classeData.prix || '0' });
+    const planField = createField({ label: 'Planning (ex: Lun/Mer 18h-20h)', name: 'planning', value: classeData.planning || '' });
+
+    form.append(nomField, niveauField, descField, prixField, planField);
+
+    const saveBtn = createButton({ label: 'Enregistrer', icon: 'save', variant: 'primary', size: 'sm' });
+    saveBtn.type = 'submit';
+    form.append(saveBtn);
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const payload = {
+        nom: form.querySelector('[name="nom"]')?.value,
+        niveau_scolaire: form.querySelector('[name="niveau_scolaire"]')?.value,
+        description: form.querySelector('[name="description"]')?.value,
+        prix: parseFloat(form.querySelector('[name="prix"]')?.value) || 0,
+        planning: form.querySelector('[name="planning"]')?.value
+      };
+      saveBtn.disabled = true;
+      try {
+        const updated = await updateClasse(classeId, payload);
+        classeData = updated.classe || classeData;
+        barTitle.textContent = classeData.nom || 'Classe';
+        notify({ tone: 'success', message: 'Classe mise à jour.' });
+      } catch (err) {
+        notify({ tone: 'danger', message: err.message });
+      } finally {
+        saveBtn.disabled = false;
+      }
+    });
+
+    // Supprimer
+    const deleteBtn = createButton({ label: 'Supprimer la classe', icon: 'trash', variant: 'danger', size: 'sm' });
+    deleteBtn.addEventListener('click', async () => {
+      if (!window.confirm(`Supprimer la classe "${classeData.nom}" ?`)) return;
+      try {
+        await supprimerClasse(classeId);
+        notify({ tone: 'success', message: 'Classe supprimée.' });
+        window.location.hash = '/classes';
+      } catch (err) {
+        notify({ tone: 'danger', message: err.message });
+      }
+    });
+
+    const ajouter = createElement({ tag: 'div', className: 'stack', attrs: { style: 'margin-top:var(--space-4);' } });
+    ajouter.append(createElement({ tag: 'h4', text: 'Ajouter un élève (par ID)' }));
+    const addForm = createElement({ tag: 'form', className: 'row' });
+    const eleveField = createField({ label: '', name: 'eleve_id', type: 'number', placeholder: 'ID élève', required: true });
+    eleveField.style.flex = '1';
+    const addBtn = createButton({ label: 'Ajouter', icon: 'plus', variant: 'secondary', size: 'sm' });
+    addBtn.type = 'submit';
+    addForm.append(eleveField, addBtn);
+    addForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const id = parseInt(eleveField.querySelector('input')?.value, 10);
+      if (!id) return;
+      addBtn.disabled = true;
+      try {
+        await ajouterEleve(classeId, id);
+        notify({ tone: 'success', message: 'Élève ajouté.' });
+        eleveField.querySelector('input').value = '';
+      } catch (err) {
+        notify({ tone: 'danger', message: err.message });
+      } finally { addBtn.disabled = false; }
+    });
+    ajouter.append(addForm);
+
+    settingsBody.append(form, ajouter, createElement({ tag: 'hr', className: 'divider' }), deleteBtn);
+  });
+
+  // --- COMPOSITEUR ---
+  const composerWrap = createElement({ tag: 'div', className: 'ia-composer-wrap' });
+  const form = createElement({ tag: 'form', className: 'ia-composer' });
+
+  const attachLabel = document.createElement('label');
+  attachLabel.className = 'ia-attach-btn';
+  attachLabel.title = 'Joindre un fichier';
+  attachLabel.append(createIcon('paperclip', { size: 18 }));
+  const fileInput = document.createElement('input');
+  fileInput.type = 'file';
+  fileInput.accept = 'image/*,.pdf';
+  fileInput.hidden = true;
+  attachLabel.append(fileInput);
+  form.append(attachLabel);
+
+  const input = document.createElement('textarea');
+  input.className = 'ia-input';
+  input.rows = 1;
+  input.placeholder = 'Votre message...';
+  form.append(input);
+
+  const sendBtn = document.createElement('button');
+  sendBtn.type = 'submit';
+  sendBtn.className = 'btn btn-primary ia-send-btn';
+  sendBtn.append(createIcon('send', { size: 18 }));
+  form.append(sendBtn);
+  composerWrap.append(form);
+  page.append(composerWrap);
+
+  const previewWrap = createElement({ tag: 'div', className: 'chat__file-preview', attrs: { style: 'display:none;' } });
+  const previewLabel = createElement({ tag: 'span', className: 'subtle' });
+  const removeFileBtn = createButton({ icon: 'x', variant: 'ghost', size: 'sm' });
+  previewWrap.append(createIcon('paperclip', { size: 14 }), previewLabel, removeFileBtn);
+  composerWrap.prepend(previewWrap);
+  let fichierSelectionne = null;
+  fileInput.addEventListener('change', () => {
+    if (fileInput.files[0]) { fichierSelectionne = fileInput.files[0]; previewLabel.textContent = fichierSelectionne.name; previewWrap.style.display = 'flex'; }
+  });
+  removeFileBtn.addEventListener('click', () => { fichierSelectionne = null; fileInput.value = ''; previewWrap.style.display = 'none'; });
+
+  const autoGrow = () => { input.style.height = 'auto'; input.style.height = `${Math.min(input.scrollHeight, 120)}px`; };
+  input.addEventListener('input', autoGrow);
+  input.addEventListener('keydown', (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); form.requestSubmit(); } });
+  const scrollToBottom = () => requestAnimationFrame(() => { scroll.scrollTop = scroll.scrollHeight; });
+
+  // --- RENDU MESSAGES ---
+  const renderMessages = (messages, myId) => {
+    scroll.replaceChildren();
+    if (!messages.length) {
+      scroll.append(createElement({ tag: 'div', className: 'chat__empty', text: 'Aucun message. Écrivez le premier !' }));
+      return;
+    }
+    let lastDate = '';
+    messages.forEach(msg => {
+      const d = msg.cree_le ? new Date(msg.cree_le).toLocaleDateString('fr-FR') : '';
+      if (d && d !== lastDate) {
+        scroll.append(createElement({ tag: 'div', className: 'chat__date-sep', text: d }));
+        lastDate = d;
+      }
+      scroll.append(buildBubble(msg, msg.expediteur_id === myId));
+    });
+    lastMsgCount = messages.length;
+    scrollToBottom();
+  };
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const texte = input.value.trim();
+    if (!texte && !fichierSelectionne) return;
+    sendBtn.disabled = true;
+    try {
+      await envoyerMessage(classeId, texte, fichierSelectionne);
+      input.value = ''; fichierSelectionne = null; fileInput.value = ''; previewWrap.style.display = 'none'; autoGrow();
+      const msgs = await getMessages(classeId);
+      renderMessages(msgs, classeData?.enseignant_id);
+    } catch (err) { notify({ tone: 'danger', message: err.message }); }
+    finally { sendBtn.disabled = false; }
+  });
+
+  // --- CHARGEMENT INITIAL ---
+  getClasseById(classeId).then(classe => {
+    classeData = classe;
+    barTitle.textContent = classe.nom || 'Classe';
+    barSub.textContent = `${classe.nombre_eleves || 0} membre(s) · ${classe.niveau_scolaire || ''}`;
+    return getMessages(classeId);
+  }).then(msgs => {
+    renderMessages(msgs, classeData?.enseignant_id);
+    pollTimer = setInterval(async () => {
+      try {
+        const msgs = await getMessages(classeId);
+        if (msgs.length !== lastMsgCount) renderMessages(msgs, classeData?.enseignant_id);
+      } catch (_) {}
+    }, POLL);
+  }).catch(err => {
+    scroll.replaceChildren(createElement({ tag: 'p', className: 'muted', text: err.message }));
+  });
+
+  page.addEventListener('disconnected', () => clearInterval(pollTimer));
   return page;
 };

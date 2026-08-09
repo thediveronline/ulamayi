@@ -56,6 +56,17 @@ export const createClasseFormView = () => {
   form.append(niveauField);
   const niveauSelect = niveauField.querySelector('select');
 
+  const descField = createField({ label: 'Description (optionnelle)', name: 'description', type: 'textarea', placeholder: 'Décrivez le contenu de la classe...' });
+  form.append(descField);
+
+  const prixField = createField({ label: 'Prix d\'accès (0 = Gratuit)', name: 'prix', type: 'number', placeholder: '0' });
+  form.append(prixField);
+  const prixInput = prixField.querySelector('input');
+
+  const planField = createField({ label: 'Planning', name: 'planning', placeholder: 'Ex: Lun/Mer 18h-20h' });
+  form.append(planField);
+  const planInput = planField.querySelector('input');
+
   const submitBtn = document.createElement('button');
   submitBtn.type = 'submit';
   submitBtn.className = 'btn btn-primary btn-block';
@@ -74,12 +85,16 @@ export const createClasseFormView = () => {
     errorEl.style.display = 'none';
 
     try {
-      await createClasse({
+      const res = await createClasse({
         nom: nomInput.value.trim(),
-        niveau_scolaire: niveauSelect.value
+        niveau_scolaire: niveauSelect.value,
+        description: form.querySelector('[name="description"]')?.value?.trim() || '',
+        prix: parseFloat(prixInput.value) || 0,
+        planning: planInput.value.trim() || ''
       });
       notify({ tone: 'success', message: 'Classe créée avec succès.' });
-      window.location.hash = '#/classes';
+      const id = res?.classe?.id;
+      window.location.hash = id ? `#/classes/${id}` : '#/classes';
     } catch (err) {
       errorEl.textContent = err.message;
       errorEl.style.display = 'flex';

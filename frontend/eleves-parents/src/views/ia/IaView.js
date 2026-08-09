@@ -61,8 +61,10 @@ export const createIaView = () => {
   input.setAttribute('required', '');
   form.append(input);
 
-  const sendBtn = createButton({ label: 'Envoyer', icon: 'sparkle', variant: 'primary' });
+  const sendBtn = document.createElement('button');
   sendBtn.type = 'submit';
+  sendBtn.className = 'btn btn-primary ia-send-btn';
+  sendBtn.append(createIcon('send', { size: 18 }));
   form.append(sendBtn);
 
   composerWrap.append(form);

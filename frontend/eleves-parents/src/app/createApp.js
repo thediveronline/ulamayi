@@ -21,6 +21,7 @@ const createNavItems = () => {
       { label: 'Accueil', href: '#/', icon: 'home' },
       { label: 'Enfants', href: '#/enfants', icon: 'users' },
       { label: 'Publications', href: '#/publications', icon: 'book' },
+      { label: 'Enseignants', href: '#/enseignants', icon: 'graduation' },
       { label: 'Profil', href: '#/profil', icon: 'user' },
       { label: 'Paramètres', href: '#/parametres', icon: 'settings' }
     ];
@@ -28,7 +29,7 @@ const createNavItems = () => {
 
   return [
     { label: 'Accueil', href: '#/', icon: 'home' },
-    { label: 'Publications', href: '#/publications', icon: 'book' },
+    { label: 'Classes', href: '#/classes', icon: 'graduation' },
     { label: 'Épreuves', href: '#/epreuves', icon: 'bookOpen' },
     { label: 'Tuteur IA', href: '#/ia', icon: 'sparkle' },
     { label: 'Profil', href: '#/profil', icon: 'user' },
@@ -73,7 +74,8 @@ export const createApp = (mountNode) => {
     const currentRoute = resolveRouteAccess(route);
     shell.setNavItems(createNavItems());
     shell.setContent(currentRoute.render(context));
-    shell.setFlush(currentRoute.path === '/ia');
+    const isFlush = currentRoute.path === '/ia' || currentRoute.path === '/classes/:id';
+    shell.setFlush(isFlush);
     shell.setActiveRoute(currentRoute.path);
   });
 

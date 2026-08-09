@@ -236,6 +236,9 @@ const creerTables = () => {
                 nom TEXT NOT NULL,
                 niveau_scolaire TEXT NOT NULL,
                 enseignant_id INTEGER,
+                description TEXT,
+                prix REAL DEFAULT 0,
+                planning TEXT,
                 cree_le TEXT DEFAULT CURRENT_TIMESTAMP,
                 FOREIGN KEY (enseignant_id) REFERENCES enseignants(id) ON DELETE CASCADE
             )
@@ -251,6 +254,24 @@ const creerTables = () => {
                 FOREIGN KEY (eleve_id) REFERENCES eleves(id) ON DELETE CASCADE,
                 FOREIGN KEY (classe_id) REFERENCES classes(id) ON DELETE CASCADE,
                 UNIQUE(eleve_id, classe_id)
+            )
+        `);
+
+        // Messages_Classes (WhatsApp-like chat)
+        db.run(`
+            CREATE TABLE IF NOT EXISTS messages_classes (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                classe_id INTEGER,
+                expediteur_id INTEGER NOT NULL,
+                role_expediteur TEXT NOT NULL,
+                nom_expediteur TEXT NOT NULL,
+                photo_expediteur TEXT,
+                contenu TEXT,
+                media_url TEXT,
+                media_type TEXT,
+                media_public_id TEXT,
+                cree_le TEXT DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (classe_id) REFERENCES classes(id) ON DELETE CASCADE
             )
         `);
 

@@ -210,9 +210,16 @@ const creerTables = async () => {
                 nom VARCHAR(100) NOT NULL,
                 niveau_scolaire VARCHAR(50) NOT NULL,
                 enseignant_id INTEGER REFERENCES enseignants(id) ON DELETE CASCADE,
+                description TEXT,
+                prix NUMERIC(10, 2) DEFAULT 0,
+                planning TEXT,
                 cree_le TIMESTAMP DEFAULT NOW()
             )
         `);
+
+        await client.query('ALTER TABLE classes ADD COLUMN IF NOT EXISTS description TEXT');
+        await client.query('ALTER TABLE classes ADD COLUMN IF NOT EXISTS prix NUMERIC(10, 2) DEFAULT 0');
+        await client.query('ALTER TABLE classes ADD COLUMN IF NOT EXISTS planning TEXT');
 
         await client.query(`
             CREATE TABLE IF NOT EXISTS eleves_classes (
@@ -221,6 +228,22 @@ const creerTables = async () => {
                 classe_id INTEGER REFERENCES classes(id) ON DELETE CASCADE,
                 rejoint_le TIMESTAMP DEFAULT NOW(),
                 UNIQUE(eleve_id, classe_id)
+            )
+        `);
+
+        await client.query(`
+            CREATE TABLE IF NOT EXISTS messages_classes (
+                id SERIAL PRIMARY KEY,
+                classe_id INTEGER REFERENCES classes(id) ON DELETE CASCADE,
+                expediteur_id INTEGER NOT NULL,
+                role_expediteur VARCHAR(20) NOT NULL,
+                nom_expediteur VARCHAR(100) NOT NULL,
+                photo_expediteur TEXT,
+                contenu TEXT,
+                media_url TEXT,
+                media_type VARCHAR(20),
+                media_public_id TEXT,
+                cree_le TIMESTAMP DEFAULT NOW()
             )
         `);
 
