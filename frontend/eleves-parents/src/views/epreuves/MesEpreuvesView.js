@@ -93,7 +93,10 @@ export const createMesEpreuvesView = () => {
           row.append(deleteBtn);
 
           row.addEventListener('click', () => {
-            window.location.hash = `/epreuves/${ep.id}`;
+            const id = ep.id || ep.id_epreuve;
+            if (id) {
+              window.location.hash = `/epreuves/${id}`;
+            }
           });
 
           list.append(row);

@@ -12,7 +12,12 @@ export const createEpreuveDetailView = (params) => {
   const loadingCard = createLoadingCard('Chargement de l\'épreuve...');
   page.append(loadingCard);
 
-  const epreuveId = params?.id;
+  const epreuveId = parseInt(params?.id, 10);
+  if (!epreuveId || Number.isNaN(epreuveId)) {
+    page.replaceChildren();
+    page.append(createElement({ tag: 'div', className: 'alert alert-danger', text: 'Identifiant d\'épreuve invalide ou non spécifié.' }));
+    return page;
+  }
 
   getEpreuveById(epreuveId)
     .then((epreuve) => {

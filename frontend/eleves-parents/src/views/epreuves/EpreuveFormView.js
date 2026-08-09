@@ -96,9 +96,14 @@ export const createEpreuveFormView = () => {
     }
 
     try {
-      await createEpreuve(formData);
+      const res = await createEpreuve(formData);
       notify({ tone: 'success', message: 'Épreuve publiée avec succès.' });
-      window.location.hash = '#/epreuves';
+      const createdId = res?.epreuve?.id || res?.id;
+      if (createdId) {
+        window.location.hash = `#/epreuves/${createdId}`;
+      } else {
+        window.location.hash = '#/epreuves';
+      }
     } catch (err) {
       errorEl.textContent = err.message;
       errorEl.style.display = 'flex';

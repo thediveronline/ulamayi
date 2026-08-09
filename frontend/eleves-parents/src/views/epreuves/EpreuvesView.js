@@ -52,7 +52,10 @@ const EpreuveRow = (epreuve, isOwner, onDelete) => {
   }
 
   row.addEventListener('click', () => {
-    window.location.hash = `/epreuves/${epreuve.id}`;
+    const id = epreuve.id || epreuve.id_epreuve;
+    if (id) {
+      window.location.hash = `/epreuves/${id}`;
+    }
   });
 
   return row;

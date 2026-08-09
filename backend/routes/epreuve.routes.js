@@ -38,7 +38,10 @@ router.post('/', verifierAuthentification, autoriser('eleve'), uploadMedia, asyn
 // DELETE /api/epreuves/:id - Supprimer une de ses épreuves
 router.delete('/:id', verifierAuthentification, autoriser('eleve', 'admin'), async (req, res) => {
     try {
-        const idEpreuve = req.params.id;
+        const idEpreuve = parseInt(req.params.id, 10);
+        if (isNaN(idEpreuve) || idEpreuve <= 0) {
+            return res.status(400).json({ message: 'Identifiant d\'épreuve invalide.' });
+        }
         const utilisateurId = req.utilisateur.id;
         const role = req.utilisateur.role;
 
@@ -66,7 +69,11 @@ router.get('/', async (req, res) => {
 // GET /api/epreuves/:id - Récupérer le détail d'une épreuve spécifique
 router.get('/:id', async (req, res) => {
     try {
-        const epreuve = await epreuveService.obtenirEpreuvePublique(req.params.id);
+        const idEpreuve = parseInt(req.params.id, 10);
+        if (isNaN(idEpreuve) || idEpreuve <= 0) {
+            return res.status(400).json({ message: 'Identifiant d\'épreuve invalide.' });
+        }
+        const epreuve = await epreuveService.obtenirEpreuvePublique(idEpreuve);
         res.status(200).json(epreuve);
     } catch (erreur) {
         res.status(erreur.status || 500).json({ message: erreur.message, details: erreur.details });
