@@ -37,19 +37,13 @@ export const createShell = ({ title, navItems }) => {
   headerInner.className = 'shell__header-inner';
 
   const brand = document.createElement('a');
-  brand.className = 'shell__brand';
-  brand.href = '#/';
-
   const brandMark = document.createElement('img');
   brandMark.className = 'shell__brand-logo';
   brandMark.src = '/logo_ulamayi.png';
-  brandMark.alt = 'Logo Ulamayi';
-  brandMark.style.cssText = 'height: 28px; width: auto; object-fit: contain; margin-right: 8px;';
+  brandMark.alt = 'Ulamayi';
+  brandMark.style.cssText = 'height: 42px; width: auto; object-fit: contain; display: block;';
 
-  const brandText = document.createElement('span');
-  brandText.textContent = title;
-
-  brand.append(brandMark, brandText);
+  brand.append(brandMark);
 
   const hamburger = document.createElement('button');
   hamburger.className = 'shell__hamburger';
