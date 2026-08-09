@@ -95,7 +95,9 @@ export const createIaView = () => {
   });
 
   const scrollToBottom = () => {
-    scroll.scrollTop = scroll.scrollHeight;
+    requestAnimationFrame(() => {
+      scroll.scrollTop = scroll.scrollHeight;
+    });
   };
 
   const openPanel = () => histPanel.classList.add('is-open');
