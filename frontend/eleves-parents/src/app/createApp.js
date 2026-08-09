@@ -29,6 +29,8 @@ const createNavItems = () => {
   return [
     { label: 'Accueil', href: '#/', icon: 'home' },
     { label: 'Publications', href: '#/publications', icon: 'book' },
+    { label: 'Épreuves', href: '#/epreuves', icon: 'bookOpen' },
+    { label: 'Tuteur IA', href: '#/ia', icon: 'sparkle' },
     { label: 'Profil', href: '#/profil', icon: 'user' },
     { label: 'Paramètres', href: '#/parametres', icon: 'settings' }
   ];
@@ -71,6 +73,7 @@ export const createApp = (mountNode) => {
     const currentRoute = resolveRouteAccess(route);
     shell.setNavItems(createNavItems());
     shell.setContent(currentRoute.render(context));
+    shell.setFlush(currentRoute.path === '/ia');
     shell.setActiveRoute(currentRoute.path);
   });
 

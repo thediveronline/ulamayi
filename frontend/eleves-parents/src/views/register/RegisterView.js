@@ -7,7 +7,7 @@ import { setLoadingState } from '../../utils/loading.js';
 
 export const createRegisterView = () => {
   const page = createElement({ tag: 'section', className: 'page' });
-  const wrapper = createElement({ tag: 'div', className: 'card stack-lg', attrs: { style: 'max-width: 520px; margin: 0 auto; width: 100%;' } });
+  const wrapper = createElement({ tag: 'div', className: 'auth-wrap stack-lg' });
 
   const header = createElement({ tag: 'div', className: 'stack' });
   header.append(

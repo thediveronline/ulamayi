@@ -12,14 +12,14 @@ const genererOTP = () => {
 // Calcule la date d'expiration a partir de maintenant
 // Par defaut : le code expire dans 10 minutes
 const calculerExpiration = (minutes = 10) => {
-    const expiration = new Date();
-    expiration.setMinutes(expiration.getMinutes() + minutes);
-    return expiration;
+    return new Date(Date.now() + minutes * 60 * 1000);
 };
 
 // Verifie que le code OTP n'est pas encore expire
 const estOTPValide = (expireLeDB) => {
-    return new Date() < new Date(expireLeDB);
+    const maintenant = Date.now();
+    const expiration = new Date(expireLeDB).getTime();
+    return maintenant < expiration;
 };
 
 module.exports = { genererOTP, calculerExpiration, estOTPValide };

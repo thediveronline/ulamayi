@@ -6,10 +6,12 @@ const creer = async (email, code, expireLe) => {
     // Suppression des anciens OTP pour eviter les doublons
     await pool.query('DELETE FROM otps WHERE email = $1', [email]);
 
+    // expireLe doit déjà être en format ISO string depuis calculerExpiration()
     const resultat = await pool.query(
         'INSERT INTO otps (email, code, expire_le) VALUES ($1, $2, $3) RETURNING *',
         [email, code, expireLe]
     );
+    
     return resultat.rows[0];
 };
 

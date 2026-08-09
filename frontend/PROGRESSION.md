@@ -108,4 +108,40 @@ Pour reprendre le travail, commencer par vérifier l'état des dossiers suivants
 - `frontend/profs` : refonte complète, design system aligné, dark mode, CRUD publications, profil, paramètres, inscription + OTP + login
 - `frontend/admin` : URL API corrigée, services admin ajoutés, vue utilisateurs branchée au backend, design à harmoniser, profil admin en attente d'une API dédiée
 
+## Alignement frontends / backend (août 2026)
+
+Objectif : mettre les 3 frontends au niveau du backend (fonctionnalités manquantes).
+
+### Frontend `eleves-parents`
+- Nouveau service `engagement.service.js` : favoris, commentaires, notes, téléchargements
+- `PublicationDetailView` enrichie : bouton favori, téléchargement, notation 1-5, section commentaires (lecture + ajout)
+- Nouveau service `epreuve.service.js` : catalogue, détail, création, suppression
+- Nouvelles vues Épreuves : `EpreuvesView` (catalogue), `EpreuveDetailView`, `EpreuveFormView` (upload média)
+- Nouveau service `ia.service.js` : poser question + historique
+- Nouvelle vue `IaView` : chat tuteur IA + historique
+- Routes ajoutées : `/epreuves`, `/epreuves/nouvelle`, `/epreuves/:id`, `/ia`
+- Navigation élève enrichie : Épreuves, Tuteur IA
+
+### Frontend `profs`
+- Nouveau service `classe.service.js` : CRUD classes + gestion élèves
+- Nouvelles vues Classes : `ClassesView`, `ClasseFormView`, `ClasseDetailView` (liste élèves + ajout)
+- Nouveau service `engagement.service.js` (lecture) + affichage des commentaires dans `PublicationDetailView`
+- Routes ajoutées : `/classes`, `/classes/nouvelle`, `/classes/:id`
+- Navigation enrichie : Classes
+
+### Frontend `admin` (refonte complète)
+- Design system aligné : `variables.css`, `base.css`, `layout.css`, icônes SVG, Alert, NotificationCenter, helpers `dom`/`loading`/`session`/`theme`/`constants`
+- Layout responsive (header, sidebar, drawer, bottom-nav, footer) avec icônes
+- Nouvelle vue `LoginView` (connexion admin, rôle forcé)
+- `HomeView` : tableau de bord avec statistiques (`GET /api/admin/stats`)
+- `UsersView` : gestion utilisateurs avec notifications (fini les `alert()`)
+- Nouvelle vue `EnseignantsView` : validation des enseignants (`PATCH /api/admin/enseignants/:id/valider`)
+- Nouvelle vue `EtablissementsView` : liste + validation (`GET /api/etablissements`, `PUT /api/etablissements/:id/valider`)
+- `ProfileView` : profil admin fonctionnel (session) + déconnexion
+- Router avec paramètres dynamiques + garde d'authentification
+- Routes : `/`, `/connexion`, `/utilisateurs`, `/enseignants`, `/etablissements`, `/profil`
+
+### Vérifications
+- Les 3 frontends compilent avec `npm run build` (Vite) sans erreur
+
 Puis mettre à jour cette section avec les étapes terminées et les décisions éventuelles.

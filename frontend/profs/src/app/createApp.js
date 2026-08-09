@@ -18,6 +18,7 @@ const createNavItems = () => {
   return [
     { label: 'Accueil', href: '#/', icon: 'home' },
     { label: 'Publications', href: '#/publications', icon: 'book' },
+    { label: 'Classes', href: '#/classes', icon: 'graduation' },
     { label: 'Profil', href: '#/profil', icon: 'user' },
     { label: 'Paramètres', href: '#/parametres', icon: 'settings' }
   ];

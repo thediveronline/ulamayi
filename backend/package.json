@@ -4,7 +4,8 @@
   "main": "serveur.js",
   "scripts": {
     "start": "node serveur.js",
-    "migrate": "node migrations/migration.js"
+    "migrate": "node migrations/migration.js",
+    "migrate:sqlite": "node migrations/migration.sqlite.js"
   },
   "keywords": [],
   "author": "",
@@ -24,6 +25,7 @@
     "mailgun.js": "^13.0.0",
     "multer": "^2.1.1",
     "multer-storage-cloudinary": "^4.0.0",
-    "pg": "^8.20.0"
+    "pg": "^8.20.0",
+    "sqlite3": "^6.0.1"
   }
 }

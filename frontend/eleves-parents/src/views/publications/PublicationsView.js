@@ -23,8 +23,8 @@ const formatDate = (iso) => {
 };
 
 const buildThumb = (item) => {
-  const thumb = createElement({ tag: 'div', className: 'pub-card__thumb' });
-  const url = urlVignette(item, { largeur: 480, hauteur: 360 });
+  const thumb = createElement({ tag: 'div', className: 'pub-card__thumb', attrs: { style: 'width: 120px; height: 80px; aspect-ratio: auto; flex-shrink: 0; border-radius: var(--radius-md);' } });
+  const url = urlVignette(item, { largeur: 240, hauteur: 160 });
 
   if (url) {
     const img = document.createElement('img');
@@ -34,51 +34,45 @@ const buildThumb = (item) => {
     thumb.append(img);
   } else {
     thumb.classList.add('pub-card__thumb--placeholder');
-    thumb.append(createIcon('book', { size: 36 }));
+    thumb.append(createIcon('book', { size: 24 }));
   }
-
-  const badges = createElement({ tag: 'div', className: 'pub-card__badges' });
-  badges.append(createElement({ tag: 'span', className: 'badge badge-primary', text: item.niveau_scolaire || 'Tous niveaux' }));
-  if (item.media_type === 'pdf') {
-    badges.append(createElement({ tag: 'span', className: 'badge badge-info', text: 'PDF' }));
-  }
-  thumb.append(badges);
-
-  const price = createElement({ tag: 'span', className: `pub-card__price badge ${Number(item.prix) > 0 ? 'badge-accent' : 'badge-success'}`, text: formatPrice(item.prix) });
-  thumb.append(price);
 
   return thumb;
 };
 
-const buildCard = (item) => {
-  const card = createElement({ tag: 'article', className: 'card card-hover pub-card', attrs: { style: 'cursor: pointer;' } });
-  card.dataset.id = item.id;
+const buildRow = (item) => {
+  const row = createElement({ tag: 'article', className: 'row', attrs: { style: 'align-items: flex-start; gap: 1rem; cursor: pointer; padding: var(--space-3) 0;' } });
+  row.dataset.id = item.id;
 
-  card.append(buildThumb(item));
+  row.append(buildThumb(item));
 
-  const body = createElement({ tag: 'div', className: 'pub-card__body' });
+  const body = createElement({ tag: 'div', className: 'stack', attrs: { style: 'gap: 0.25rem; flex: 1; min-width: 0;' } });
   body.append(
     createElement({ tag: 'h3', className: 'pub-card__title', text: item.titre || 'Sans titre' }),
     createElement({ tag: 'p', className: 'pub-card__desc', text: item.description || 'Sans description.' })
   );
 
-  const meta = createElement({ tag: 'div', className: 'pub-card__meta' });
-  const date = createElement({ tag: 'span', className: 'row', attrs: { style: 'gap: 0.3rem;' } });
-  date.append(createIcon('calendar', { size: 12 }));
-  date.append(document.createTextNode(formatDate(item.cree_le) || '—'));
-
-  const cta = createElement({ tag: 'span', attrs: { style: 'color: var(--color-primary); font-weight: 600;' } });
-  cta.append(document.createTextNode('Voir '));
-  cta.append(createIcon('chevronRight', { size: 14 }));
-  meta.append(date, cta);
-
+  const meta = createElement({ tag: 'div', className: 'row', attrs: { style: 'gap: var(--space-2);' } });
+  meta.append(createElement({ tag: 'span', className: 'badge badge-primary', text: item.niveau_scolaire || 'Tous niveaux' }));
+  if (item.media_type === 'pdf') {
+    meta.append(createElement({ tag: 'span', className: 'badge', text: 'PDF' }));
+  }
+  meta.append(createElement({ tag: 'span', className: `badge ${Number(item.prix) > 0 ? 'badge-primary' : 'badge-success'}`, text: formatPrice(item.prix) }));
+  if (formatDate(item.cree_le)) {
+    meta.append(createElement({ tag: 'span', className: 'subtle', text: formatDate(item.cree_le) }));
+  }
   body.append(meta);
-  card.append(body);
 
-  card.addEventListener('click', () => {
+  row.append(body);
+
+  const chevron = createElement({ tag: 'div', attrs: { style: 'align-self: center; color: var(--color-text-subtle);' } });
+  chevron.append(createIcon('chevronRight', { size: 18 }));
+  row.append(chevron);
+
+  row.addEventListener('click', () => {
     window.location.hash = `/publications/${item.id}`;
   });
-  return card;
+  return row;
 };
 
 const buildEmptyState = () => {
@@ -123,7 +117,7 @@ export const createPublicationsView = () => {
   searchWrapper.append(iconNode, searchInput);
   page.append(searchWrapper);
 
-  const list = createElement({ tag: 'div', className: 'grid-cards' });
+  const list = createElement({ tag: 'div', className: 'stack' });
   list.append(createLoadingCard('Chargement des publications...'));
   page.append(list);
 
@@ -135,7 +129,12 @@ export const createPublicationsView = () => {
       list.append(buildEmptyState());
       return;
     }
-    items.forEach((item) => list.append(buildCard(item)));
+    items.forEach((item, index) => {
+      if (index > 0) {
+        list.append(createElement({ tag: 'hr', className: 'divider' }));
+      }
+      list.append(buildRow(item));
+    });
   };
 
   searchInput.addEventListener('input', (event) => {

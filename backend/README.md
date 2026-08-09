@@ -159,6 +159,19 @@ OTP_EXPIRES_MINUTES=10           # optionnel : duree de validite des codes
 
 Si ces variables ne sont pas définies, le code OTP sera affiché dans la console du serveur (mode dev). Cela permet de continuer à tester l'inscription sans clé Mailgun.
 
+### Variables d'environnement OpenRouter (IA / Tuteur virtuel)
+
+À ajouter dans `backend/.env` :
+```
+OPENROUTER_API_KEY=...            # cle API OpenRouter (https://openrouter.ai/keys)
+OPENROUTER_MODEL=openai/gpt-4o-mini   # modele par defaut (optionnel)
+# OPENROUTER_BASE_URL=https://openrouter.ai/api/v1   # optionnel
+# OPENROUTER_REFERER=https://ulamayi.online          # optionnel
+# OPENROUTER_TITLE=Ulamayi                           # optionnel
+```
+
+Le tuteur IA (`POST /api/ia/poser-question`) appelle OpenRouter (format compatible OpenAI). Si `OPENROUTER_API_KEY` n'est pas définie, le service retombe sur un **mock local** (réponses pré-écrites) pour ne pas bloquer le développement.
+
 ### Migration de la base
 
 Les colonnes `media_type` et `media_public_id` ont été ajoutées à la table `publications`. Si tu as déjà une base, relance la migration :

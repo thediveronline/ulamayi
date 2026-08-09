@@ -73,7 +73,7 @@ const calculerStatsPublication = async (publication_id) => {
     const sql = `
         SELECT 
             COUNT(*) as nombre_notes,
-            AVG(note)::NUMERIC(3,2) as note_moyenne
+            ROUND(AVG(note), 2) as note_moyenne
         FROM notes_publications 
         WHERE publication_id = $1
     `;

@@ -6,6 +6,50 @@ import { createIcon } from '../../components/icon/icon.js';
 import { createAlert } from '../../components/alert/alert.js';
 import { urlVignette } from '../../utils/media.js';
 
+const buildPubRow = (item) => {
+  const row = createElement({ tag: 'article', className: 'row', attrs: { style: 'align-items: flex-start; gap: 1rem; cursor: pointer; padding: var(--space-3) 0;' } });
+
+  const thumb = createElement({ tag: 'div', className: 'pub-card__thumb', attrs: { style: 'width: 120px; height: 80px; aspect-ratio: auto; flex-shrink: 0; border-radius: var(--radius-md);' } });
+  const url = urlVignette(item, { largeur: 240, hauteur: 160 });
+  if (url) {
+    const img = document.createElement('img');
+    img.src = url;
+    img.alt = item.titre || 'Publication';
+    img.loading = 'lazy';
+    thumb.append(img);
+  } else {
+    thumb.classList.add('pub-card__thumb--placeholder');
+    thumb.append(createIcon('book', { size: 24 }));
+  }
+  row.append(thumb);
+
+  const body = createElement({ tag: 'div', className: 'stack', attrs: { style: 'gap: 0.25rem; flex: 1; min-width: 0;' } });
+  body.append(
+    createElement({ tag: 'h3', className: 'pub-card__title', text: item.titre || 'Sans titre' }),
+    createElement({ tag: 'p', className: 'pub-card__desc', text: item.description || 'Sans description.' })
+  );
+
+  const meta = createElement({ tag: 'div', className: 'row', attrs: { style: 'gap: var(--space-2);' } });
+  meta.append(createElement({ tag: 'span', className: 'badge badge-primary', text: item.niveau_scolaire || '-' }));
+  if (item.media_type === 'pdf') {
+    meta.append(createElement({ tag: 'span', className: 'badge', text: 'PDF' }));
+  }
+  const priceText = Number(item.prix) > 0 ? `${Number(item.prix).toLocaleString('fr-FR')} F` : 'Gratuit';
+  meta.append(createElement({ tag: 'span', className: `badge ${Number(item.prix) > 0 ? 'badge-primary' : 'badge-success'}`, text: priceText }));
+  body.append(meta);
+
+  row.append(body);
+
+  const chevron = createElement({ tag: 'div', attrs: { style: 'align-self: center; color: var(--color-text-subtle);' } });
+  chevron.append(createIcon('chevronRight', { size: 18 }));
+  row.append(chevron);
+
+  row.addEventListener('click', () => {
+    window.location.hash = `/publications/${item.id}`;
+  });
+  return row;
+};
+
 export const createChildFollowupView = (context = {}) => {
   const childId = context?.params?.id;
   const page = createElement({ tag: 'section', className: 'page' });
@@ -19,7 +63,7 @@ export const createChildFollowupView = (context = {}) => {
     return page;
   }
 
-  const summary = createElement({ tag: 'div', className: 'card stack' });
+  const summary = createElement({ tag: 'div', className: 'stack' });
   summary.append(createLoadingCard('Chargement du suivi...'));
   page.append(summary);
 
@@ -30,45 +74,8 @@ export const createChildFollowupView = (context = {}) => {
   );
   page.append(pubsHeader);
 
-  const list = createElement({ tag: 'div', className: 'grid-cards' });
+  const list = createElement({ tag: 'div', className: 'stack' });
   page.append(list);
-
-  const buildPubCard = (item) => {
-    const card = createElement({ tag: 'article', className: 'card card-hover pub-card', attrs: { style: 'cursor: pointer;' } });
-
-    const thumb = createElement({ tag: 'div', className: 'pub-card__thumb' });
-    const url = urlVignette(item, { largeur: 480, hauteur: 360 });
-    if (url) {
-      const img = document.createElement('img');
-      img.src = url;
-      img.alt = item.titre || 'Publication';
-      img.loading = 'lazy';
-      thumb.append(img);
-    } else {
-      thumb.classList.add('pub-card__thumb--placeholder');
-      thumb.append(createIcon('book', { size: 36 }));
-    }
-    const badges = createElement({ tag: 'div', className: 'pub-card__badges' });
-    badges.append(createElement({ tag: 'span', className: 'badge badge-primary', text: item.niveau_scolaire || '-' }));
-    if (item.media_type === 'pdf') {
-      badges.append(createElement({ tag: 'span', className: 'badge badge-info', text: 'PDF' }));
-    }
-    thumb.append(badges);
-    const priceText = Number(item.prix) > 0 ? `${Number(item.prix).toLocaleString('fr-FR')} F` : 'Gratuit';
-    thumb.append(createElement({ tag: 'span', className: `pub-card__price badge ${Number(item.prix) > 0 ? 'badge-accent' : 'badge-success'}`, text: priceText }));
-
-    const body = createElement({ tag: 'div', className: 'pub-card__body' });
-    body.append(
-      createElement({ tag: 'h3', className: 'pub-card__title', text: item.titre || 'Sans titre' }),
-      createElement({ tag: 'p', className: 'pub-card__desc', text: item.description || 'Sans description.' })
-    );
-
-    card.append(thumb, body);
-    card.addEventListener('click', () => {
-      window.location.hash = `/publications/${item.id}`;
-    });
-    return card;
-  };
 
   getChildFollowup(childId)
     .then(({ eleve, publications: items }) => {
@@ -101,7 +108,12 @@ export const createChildFollowupView = (context = {}) => {
         return;
       }
 
-      items.forEach((item) => list.append(buildPubCard(item)));
+      items.forEach((item, index) => {
+        if (index > 0) {
+          list.append(createElement({ tag: 'hr', className: 'divider' }));
+        }
+        list.append(buildPubRow(item));
+      });
     })
     .catch((error) => {
       summary.replaceChildren(createAlert({ tone: 'danger', message: error.message }));

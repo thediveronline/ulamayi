@@ -48,13 +48,15 @@ export const createProfileView = () => {
   const feedback = createElement({ tag: 'div', className: 'stack' });
   page.append(feedback);
 
-  // Profile summary card
-  const summaryCard = createElement({ tag: 'div', className: 'card stack' });
+  // Profile summary section
+  const summaryCard = createElement({ tag: 'div', className: 'stack' });
   summaryCard.append(createLoadingCard('Chargement du profil...'));
   page.append(summaryCard);
 
-  // Edit form card
-  const formCard = createElement({ tag: 'div', className: 'card stack' });
+  page.append(createElement({ tag: 'hr', className: 'divider' }));
+
+  // Edit form section
+  const formCard = createElement({ tag: 'div', className: 'stack' });
   formCard.append(createElement({ tag: 'h2', text: 'Modifier mes informations' }));
 
   const form = createElement({ tag: 'form', className: 'form' });
@@ -104,7 +106,7 @@ export const createProfileView = () => {
     const badge = createElement({ tag: 'span', className: role === 'parent' ? 'badge badge-accent' : 'badge badge-primary', text: role === 'parent' ? 'Parent' : 'Élève' });
     top.append(badge);
 
-    const grid = createElement({ tag: 'div', className: 'grid-cards' });
+    const grid = createElement({ tag: 'div', className: 'stack' });
     grid.append(renderInfoRow('mail', 'Email', profile.email));
     if (role === 'eleve') {
       grid.append(renderInfoRow('graduation', 'Niveau scolaire', profile.niveau_scolaire));
