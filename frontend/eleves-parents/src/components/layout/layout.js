@@ -40,9 +40,11 @@ export const createShell = ({ title, navItems }) => {
   brand.className = 'shell__brand';
   brand.href = '#/';
 
-  const brandMark = document.createElement('span');
-  brandMark.className = 'shell__brand-mark';
-  brandMark.append(createIcon('graduation', { size: 16 }));
+  const brandMark = document.createElement('img');
+  brandMark.className = 'shell__brand-logo';
+  brandMark.src = '/logo_ulamayi.png';
+  brandMark.alt = 'Logo Ulamayi';
+  brandMark.style.cssText = 'height: 28px; width: auto; object-fit: contain; margin-right: 8px;';
 
   const brandText = document.createElement('span');
   brandText.textContent = title;
