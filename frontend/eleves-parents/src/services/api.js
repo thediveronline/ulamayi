@@ -25,7 +25,8 @@ export const apiRequest = async (path, options = {}) => {
   const session = getSession();
   const headers = new Headers(options.headers || {});
 
-  if (!headers.has('Content-Type') && options.body) {
+  const bodyEstFormData = typeof FormData !== 'undefined' && options.body instanceof FormData;
+  if (!headers.has('Content-Type') && options.body && !bodyEstFormData) {
     headers.set('Content-Type', 'application/json');
   }
 
@@ -34,7 +35,7 @@ export const apiRequest = async (path, options = {}) => {
   }
 
   if (typeof console !== 'undefined') {
-    console.debug('[API request]', options.method || 'GET', path, options.body ? JSON.parse(options.body) : null);
+    console.debug('[API request]', options.method || 'GET', path, options.body ? (bodyEstFormData ? '[FormData]' : options.body) : null);
   }
 
   let response;
