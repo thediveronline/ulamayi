@@ -121,10 +121,41 @@ const supprimerClasse = async (classeId, enseignantId, role) => {
 };
 
 // --- CHAT LOGIC ---
+const modeleEleve = require('../models/eleve.modele');
+const modeleEnseignant = require('../models/enseignant.modele');
+const modeleParent = require('../models/parent.modele');
+
 const envoyerMessage = async (classeId, utilisateur, contenu, fichier) => {
     const classe = await classeModele.trouverParId(classeId);
     if (!classe) {
         throw { status: 404, message: 'Classe introuvable.' };
+    }
+
+    const textePropre = (contenu || '').trim();
+    if (!textePropre && !fichier) {
+        throw { status: 400, message: 'Le message ne peut pas être vide.' };
+    }
+
+    let nomExpediteur = 'Utilisateur';
+    let photoExpediteur = null;
+
+    if (utilisateur.role === 'enseignant') {
+        const prof = await modeleEnseignant.trouverParId(utilisateur.id);
+        if (prof) {
+            nomExpediteur = [prof.titre, prof.prenom, prof.nom].filter(Boolean).join(' ') || prof.nom || 'Enseignant';
+            photoExpediteur = prof.photo_profil || null;
+        }
+    } else if (utilisateur.role === 'eleve') {
+        const eleve = await modeleEleve.trouverParId(utilisateur.id);
+        if (eleve) {
+            nomExpediteur = [eleve.prenom, eleve.nom].filter(Boolean).join(' ') || eleve.nom || 'Élève';
+            photoExpediteur = eleve.photo_profil || null;
+        }
+    } else if (utilisateur.role === 'parent') {
+        const parent = await modeleParent.trouverParId(utilisateur.id);
+        if (parent) {
+            nomExpediteur = [parent.prenom, parent.nom].filter(Boolean).join(' ') || parent.nom || 'Parent';
+        }
     }
 
     let media_url = null;
@@ -138,17 +169,13 @@ const envoyerMessage = async (classeId, utilisateur, contenu, fichier) => {
         media_public_id = resultUpload.public_id;
     }
 
-    const nomExpediteur = utilisateur.prenom && utilisateur.nom
-        ? `${utilisateur.prenom} ${utilisateur.nom}`
-        : (utilisateur.nom || 'Utilisateur');
-
     return await classeModele.ajouterMessage({
         classe_id: parseInt(classeId, 10),
         expediteur_id: utilisateur.id,
         role_expediteur: utilisateur.role,
         nom_expediteur: nomExpediteur,
-        photo_expediteur: utilisateur.photo_profil || null,
-        contenu: contenu || null,
+        photo_expediteur: photoExpediteur,
+        contenu: textePropre || null,
         media_url,
         media_type,
         media_public_id

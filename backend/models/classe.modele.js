@@ -163,9 +163,30 @@ const ajouterMessage = async ({ classe_id, expediteur_id, role_expediteur, nom_e
 
 const listerMessages = async (classe_id) => {
     const sql = `
-        SELECT * FROM messages_classes
-        WHERE classe_id = $1
-        ORDER BY cree_le ASC
+        SELECT 
+            m.*,
+            COALESCE(
+                NULLIF(NULLIF(m.nom_expediteur, 'Utilisateur'), ''),
+                CASE 
+                    WHEN m.role_expediteur = 'enseignant' THEN NULLIF(TRIM(CONCAT(COALESCE(ens.titre, ''), ' ', COALESCE(ens.prenom, ''), ' ', COALESCE(ens.nom, ''))), '')
+                    WHEN m.role_expediteur = 'eleve' THEN NULLIF(TRIM(CONCAT(COALESCE(el.prenom, ''), ' ', COALESCE(el.nom, ''))), '')
+                    ELSE 'Utilisateur'
+                END,
+                'Utilisateur'
+            ) AS nom_expediteur,
+            COALESCE(
+                m.photo_expediteur,
+                CASE 
+                    WHEN m.role_expediteur = 'enseignant' THEN ens.photo_profil
+                    WHEN m.role_expediteur = 'eleve' THEN el.photo_profil
+                    ELSE NULL
+                END
+            ) AS photo_expediteur
+        FROM messages_classes m
+        LEFT JOIN enseignants ens ON m.role_expediteur = 'enseignant' AND m.expediteur_id = ens.id
+        LEFT JOIN eleves el ON m.role_expediteur = 'eleve' AND m.expediteur_id = el.id
+        WHERE m.classe_id = $1
+        ORDER BY m.cree_le ASC
     `;
     const resultat = await pool.query(sql, [classe_id]);
     return resultat.rows;
