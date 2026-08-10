@@ -20,26 +20,29 @@ const routesEtablissement = require('./routes/etablissement.routes');
 
 const app = express();
 
-// helmet pour  ajouter des en-tetes HTTP de securite pour  protection XSS
+// Important : indispensable derrière un reverse proxy (Nginx) pour lire correctement les IP réelles des utilisateurs
+app.set('trust proxy', 1);
+
+// helmet pour ajouter des en-têtes HTTP de sécurité pour protection XSS
 app.use(helmet());
 
-// cors pour  permetre  front-end  d'envoyer des requetes au back-end
+// cors pour permettre au front-end d'envoyer des requêtes au back-end
 app.use(cors());
 
-// pour permet a Express de lire les corps de requetes en format JSON
+// pour permettre à Express de lire les corps de requêtes en format JSON
 app.use(express.json());
 
-// on limite  le nombre de requetes par a 100 maxs toutes les 15 minutes pour eviter les attQUES BRUTEFORCE
-
-const limiteur = rateLimit({
-    windowMs: 15 * 60 * 1000,
-    max: 100,
-    message: { message: 'Trop de requetes. Veuillez reessayer dans 15 minutes.' },
+// Limiteur de tentatives uniquement sur l'authentification (connexion/inscription) pour contrer le brute-force
+const authLimiteur = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 30, // 30 tentatives par IP toutes les 15 minutes (suffisant pour la connexion, n'impacte pas le reste)
+    message: { message: 'Trop de tentatives de connexion. Veuillez réessayer dans 15 minutes.' },
+    standardHeaders: true,
+    legacyHeaders: false,
 });
-app.use(limiteur);
 
-// montage des routes sur leurs prefixes respectifs
-app.use('/api/auth', routesAuth);
+// Applique le limiteur uniquement aux routes d'authentification
+app.use('/api/auth', authLimiteur, routesAuth);
 app.use('/api/admin', routesAdmin);
 app.use('/api/eleves', routesEleve);
 app.use('/api/enseignants', routesEnseignant);
