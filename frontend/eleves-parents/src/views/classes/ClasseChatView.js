@@ -18,23 +18,28 @@ const buildBubble = (msg, currentUserId, currentUserRole) => {
   const wrap = createElement({ tag: 'div', className: `chat__row ${moi ? 'chat__row--user' : 'chat__row--ai'}` });
   const bubble = createElement({ tag: 'div', className: `chat__msg ${moi ? 'chat__msg--user' : 'chat__msg--ai'}` });
 
-  if (!moi) {
-    const senderHeader = createElement({ tag: 'div', className: 'chat__sender' });
-    const nomText = msg.nom_expediteur || (msg.role_expediteur === 'enseignant' ? 'Enseignant' : 'Élève');
+  // En-tête expéditeur style WhatsApp
+  const senderHeader = createElement({ tag: 'div', className: 'chat__sender' });
+  if (moi) {
+    const senderName = createElement({ tag: 'span', className: 'chat__sender-name chat__sender-name--you', text: 'Vous' });
+    senderHeader.append(senderName);
+  } else {
+    let nomText = msg.nom_expediteur;
+    if (!nomText || nomText === 'Utilisateur' || nomText.trim() === '') {
+      nomText = msg.role_expediteur === 'enseignant' ? 'Enseignant' : 'Élève';
+    }
     const senderName = createElement({ tag: 'span', className: 'chat__sender-name', text: nomText });
     senderHeader.append(senderName);
-
     const isProf = msg.role_expediteur === 'enseignant';
     const roleBadge = createElement({
       tag: 'span',
       className: `badge ${isProf ? 'badge-accent' : 'badge-primary'}`,
       text: isProf ? 'Prof' : 'Élève'
     });
-    roleBadge.style.cssText = 'font-size:0.65rem; padding:1px 6px; margin-left:6px; font-weight:600;';
+    roleBadge.style.cssText = 'font-size:0.6rem; padding:1px 5px; margin-left:4px; font-weight:700;';
     senderHeader.append(roleBadge);
-
-    bubble.append(senderHeader);
   }
+  bubble.append(senderHeader);
 
   if (msg.media_url) {
     if (msg.media_type === 'pdf') {
@@ -132,14 +137,14 @@ export const createClasseChatView = (context = {}) => {
   });
   closePanelBtn.addEventListener('click', () => mediaPanel.classList.remove('is-open'));
 
-  // --- COMPOSITEUR ---
+  // --- COMPOSITEUR WHATSAPP ---
   const composerWrap = createElement({ tag: 'div', className: 'ia-composer-wrap' });
   const form = createElement({ tag: 'form', className: 'ia-composer' });
 
   const attachLabel = document.createElement('label');
   attachLabel.className = 'ia-attach-btn';
   attachLabel.title = 'Joindre une photo ou un document PDF';
-  attachLabel.append(createIcon('paperclip', { size: 18 }));
+  attachLabel.append(createIcon('paperclip', { size: 20 }));
   const fileInput = document.createElement('input');
   fileInput.type = 'file';
   fileInput.accept = 'image/*,.pdf';
@@ -147,17 +152,19 @@ export const createClasseChatView = (context = {}) => {
   attachLabel.append(fileInput);
   form.append(attachLabel);
 
+  const inputCapsule = createElement({ tag: 'div', className: 'ia-input-capsule' });
   const input = document.createElement('textarea');
   input.className = 'ia-input';
   input.rows = 1;
   input.placeholder = 'Écrire un message...';
-  form.append(input);
+  inputCapsule.append(input);
+  form.append(inputCapsule);
 
   const sendBtn = document.createElement('button');
   sendBtn.type = 'submit';
-  sendBtn.className = 'btn btn-primary ia-send-btn';
+  sendBtn.className = 'ia-send-btn';
   sendBtn.title = 'Envoyer';
-  sendBtn.append(createIcon('send', { size: 18 }));
+  sendBtn.append(createIcon('send', { size: 20 }));
   form.append(sendBtn);
 
   composerWrap.append(form);

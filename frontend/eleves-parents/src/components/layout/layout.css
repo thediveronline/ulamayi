@@ -217,16 +217,24 @@
   }
 }
 
-/* Mode plein écran (vue Tchat IA) : chaîne flex pleine hauteur + largeur max retirée */
+/* Mode plein écran (vue Tchat IA / Classe) : chaîne flex pleine hauteur + largeur max retirée */
 .shell__main--flush {
-  padding-top: 0;
-  padding-bottom: 0;
-  display: flex;
-  flex-direction: column;
-  height: calc(100vh - var(--header-height));
-  height: calc(100dvh - var(--header-height));
-  max-height: calc(100dvh - var(--header-height));
-  overflow: hidden;
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  height: calc(100vh - var(--header-height) - var(--bottom-nav-height, 56px)) !important;
+  height: calc(100dvh - var(--header-height) - var(--bottom-nav-height, 56px)) !important;
+  max-height: calc(100dvh - var(--header-height) - var(--bottom-nav-height, 56px)) !important;
+  overflow: hidden !important;
+}
+
+@media (min-width: 768px) {
+  .shell__main--flush {
+    height: calc(100vh - var(--header-height)) !important;
+    height: calc(100dvh - var(--header-height)) !important;
+    max-height: calc(100dvh - var(--header-height)) !important;
+  }
 }
 
 .shell__body--flush {

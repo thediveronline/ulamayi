@@ -62,6 +62,8 @@ export const createApp = (mountNode) => {
     shell.setNavItems(createNavItems());
     shell.setContent(currentRoute.render(context));
     shell.setActiveRoute(currentRoute.path);
+    const isFlush = currentRoute.path === '/classes/:id' || currentRoute.path === '/ia';
+    shell.setFlush(isFlush);
   });
 
   router.start();

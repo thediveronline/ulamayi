@@ -945,9 +945,14 @@ strong {
   flex: 1 1 0%;
   height: 100%;
   min-height: 0;
-  background: var(--color-bg);
+  background: #ECE5DD;
   overflow: hidden;
-  padding-bottom: var(--bottom-nav-height);
+  /* Sur mobile, laisser le place pour la bottom-nav */
+  padding-bottom: 0;
+}
+
+[data-theme="dark"] .ia-chat-screen {
+  background: #1a1d24;
 }
 
 @media (min-width: 768px) {
@@ -1013,69 +1018,122 @@ strong {
   overscroll-behavior: contain;
   display: flex;
   flex-direction: column;
-  gap: var(--space-4);
-  padding: var(--space-5);
-  background: var(--color-bg);
+  gap: var(--space-3);
+  padding: var(--space-4) var(--space-3);
+  background: transparent;
+}
+
+/* ======================================================
+   BULLES WhatsApp — Classe
+   ====================================================== */
+.chat__row {
+  display: flex;
+  max-width: 82%;
+  margin-bottom: 2px;
+}
+.chat__row--user {
+  align-self: flex-end;
+  justify-content: flex-end;
+}
+.chat__row--ai {
+  align-self: flex-start;
+  justify-content: flex-start;
 }
 
 .chat__msg {
-  max-width: 78%;
-  padding: 0.625rem 0.875rem;
-  border-radius: var(--radius-lg);
-  line-height: 1.55;
-  font-size: 0.925rem;
+  display: flex;
+  flex-direction: column;
+  padding: 6px 10px 4px;
+  border-radius: 8px;
+  line-height: 1.5;
+  font-size: 0.9rem;
   white-space: pre-wrap;
+  word-break: break-word;
+  max-width: 100%;
+  position: relative;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.15);
 }
 
-.ia-chat-screen .chat__msg--ai {
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
+.chat__msg--user {
+  background: #DCF8C6;
+  color: #111;
+  border-bottom-right-radius: 2px;
+}
+[data-theme="dark"] .chat__msg--user {
+  background: #005c4b;
+  color: #e9edef;
+}
+
+.chat__msg--ai {
+  background: #fff;
+  color: #111;
+  border-bottom-left-radius: 2px;
+  border: none;
+}
+[data-theme="dark"] .chat__msg--ai {
+  background: #1f2c34;
+  color: #e9edef;
 }
 
 .ia-composer-wrap {
   flex-shrink: 0;
-  border-top: 1px solid var(--color-border);
-  background: var(--color-surface);
-  padding: var(--space-3) var(--space-4);
-  display: grid;
-  gap: var(--space-3);
+  background: #F0F2F5;
+  padding: 8px var(--space-3);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+[data-theme="dark"] .ia-composer-wrap {
+  background: #1f2c34;
 }
 
 .ia-composer {
   display: flex;
   align-items: flex-end;
-  gap: var(--space-3);
+  gap: 8px;
 }
 
-.ia-composer .btn {
-  flex-shrink: 0;
+.ia-input-capsule {
+  flex: 1 1 auto;
+  min-width: 0;
+  background: #fff;
+  border-radius: 24px;
+  padding: 6px 14px;
+  border: none;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+  display: flex;
+  align-items: flex-end;
+}
+[data-theme="dark"] .ia-input-capsule {
+  background: #2a3942;
 }
 
 .ia-input {
   flex: 1 1 auto;
   min-width: 0;
   resize: none;
-  max-height: 120px;
-  min-height: 44px;
+  max-height: 100px;
+  min-height: 24px;
   line-height: 1.5;
   overflow-y: auto;
-  padding: 0.6rem 0.9rem;
-  background: var(--color-surface-muted);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  color: var(--color-text);
+  padding: 0;
+  background: transparent;
+  border: none;
+  color: #111;
   font: inherit;
-  transition: border-color var(--transition-fast), background var(--transition-fast);
+  font-size: 0.95rem;
+}
+[data-theme="dark"] .ia-input {
+  color: #e9edef;
 }
 
 .ia-input::placeholder {
-  color: var(--color-text-subtle);
+  color: #a0aab4;
 }
 
 .ia-input:focus {
   outline: none;
-  border-color: var(--color-text);
-  background: var(--color-surface);
 }
 
 .typing {
@@ -1183,27 +1241,40 @@ strong {
    BOUTON ENVOI ICÔNE SEULE
    ====================================================== */
 .ia-send-btn {
-  width: 40px;
-  height: 40px;
+  width: 44px;
+  height: 44px;
   padding: 0;
   display: grid;
   place-items: center;
   border-radius: 50%;
   flex-shrink: 0;
+  background: #25D366;
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  transition: background 0.15s;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.2);
 }
+.ia-send-btn:hover:not(:disabled) { background: #1DA851; }
+.ia-send-btn:disabled { opacity: 0.55; cursor: not-allowed; }
+[data-theme="dark"] .ia-send-btn { background: #00a884; }
+[data-theme="dark"] .ia-send-btn:hover:not(:disabled) { background: #00c79a; }
 
 .ia-attach-btn {
   display: grid;
   place-items: center;
-  width: 36px;
-  height: 36px;
-  color: var(--color-text-subtle);
+  width: 40px;
+  height: 40px;
+  min-height: 40px;
+  color: #8696A0;
   cursor: pointer;
-  border-radius: var(--radius-md);
-  transition: color 0.15s;
+  border-radius: 50%;
+  transition: color 0.15s, background 0.15s;
   flex-shrink: 0;
+  background: transparent;
+  border: none;
 }
-.ia-attach-btn:hover { color: var(--color-text); }
+.ia-attach-btn:hover { color: var(--color-text); background: rgba(0,0,0,0.05); }
 
 .chat__file-preview {
   display: flex;
@@ -1218,13 +1289,27 @@ strong {
 /* ======================================================
    CHAT MESSAGES — CLASSE
    ====================================================== */
-.classe-chat .chat__sender {
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: var(--color-primary);
-  display: block;
-  margin-bottom: 2px;
+/* Sender header WhatsApp */
+.chat__sender {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-bottom: 3px;
 }
+
+.chat__sender-name {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #0984e3;
+}
+
+.chat__sender-name--you {
+  color: #25D366;
+}
+
+[data-theme="dark"] .chat__sender-name { color: #7fc5f9; }
+[data-theme="dark"] .chat__sender-name--you { color: #00c79a; }
 
 .chat__date-sep {
   text-align: center;
