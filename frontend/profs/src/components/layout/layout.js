@@ -118,6 +118,12 @@ export const createShell = ({ title, navItems }) => {
       content.replaceChildren(node);
       window.scrollTo({ top: 0, behavior: 'instant' in window ? 'instant' : 'auto' });
     },
+    setFlush(flush) {
+      main.classList.toggle('shell__main--flush', flush);
+      body.classList.toggle('shell__body--flush', flush);
+      // En mode flush, cacher le footer et passer la bottom-nav en overlay
+      footer.style.display = flush ? 'none' : '';
+    },
     setNavItems(items) {
       fillNav(desktopNav, items, 'shell__nav-link');
       fillNav(sidebar, items, 'shell__sidebar-link');

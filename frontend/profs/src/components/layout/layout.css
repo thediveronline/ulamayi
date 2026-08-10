@@ -277,25 +277,19 @@
   }
 }
 
-/* Mode plein écran (vue Tchat de classe / IA) : ajustement responsive parfait */
+/* Mode plein écran (vue Tchat de classe / IA) : hauteur maximale, bottom-nav cachée par JS */
 .shell__main--flush {
   padding-top: 0 !important;
   padding-bottom: 0 !important;
   display: flex !important;
   flex-direction: column !important;
-  height: calc(100vh - var(--header-height) - var(--bottom-nav-height, 0px)) !important;
-  height: calc(100dvh - var(--header-height) - var(--bottom-nav-height, 0px)) !important;
-  max-height: calc(100dvh - var(--header-height) - var(--bottom-nav-height, 0px)) !important;
+  /* La bottom-nav est cachée en mode flush (via setFlush), on soustrait seulement le header */
+  height: calc(100vh - var(--header-height)) !important;
+  height: calc(100dvh - var(--header-height)) !important;
+  max-height: calc(100dvh - var(--header-height)) !important;
   overflow: hidden !important;
 }
 
-@media (min-width: 768px) {
-  .shell__main--flush {
-    height: calc(100vh - var(--header-height)) !important;
-    height: calc(100dvh - var(--header-height)) !important;
-    max-height: calc(100dvh - var(--header-height)) !important;
-  }
-}
 
 .shell__body--flush {
   width: 100% !important;

@@ -103,9 +103,11 @@ export const createShell = ({ title, navItems }) => {
       window.scrollTo({ top: 0, behavior: 'instant' in window ? 'instant' : 'auto' });
     },
     setFlush(flush) {
-      // Mode "plein écran" : supprime paddings + contrainte de largeur (vue Tchat IA)
+      // Mode "plein écran" : supprime paddings + contrainte de largeur (vue Tchat IA / Classe)
       main.classList.toggle('shell__main--flush', flush);
       body.classList.toggle('shell__body--flush', flush);
+      // Masquer la bottom-nav en mode flush pour libérer l'espace du compositeur
+      bottomNav.style.display = flush ? 'none' : '';
     },
     setNavItems(items) {
       fillNav(desktopNav, items, 'shell__nav-link');

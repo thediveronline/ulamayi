@@ -775,6 +775,8 @@ strong {
   background: #0d1b2a;
 }
 
+/* Le shell__main--flush gère déjà la hauteur exacte : pas besoin de padding-bottom ici */
+
 .ia-chat-bar {
   position: sticky;
   top: 0;
